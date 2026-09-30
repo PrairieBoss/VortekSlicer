@@ -456,11 +456,11 @@ void GLModel::init_from(const indexed_triangle_set& its)
     data.reserve_vertices(3 * its.indices.size());
     data.reserve_indices(3 * its.indices.size());
 
-    // Read user preference: smooth normals enabled
-    const bool realistic_mode = wxGetApp().app_config != nullptr && wxGetApp().app_config->get_bool(SETTING_OPENGL_REALISTIC_MODE);
-    const bool smooth_normals_enabled = wxGetApp().app_config != nullptr && wxGetApp().app_config->get_bool(SETTING_OPENGL_PHONG_SMOOTH_NORMALS);
+    // CLI thumbnail generation can initialize models without a wx application.
+    const bool smooth_normals_enabled = wxApp::GetInstance() != nullptr && wxGetApp().app_config != nullptr &&
+                                        wxGetApp().app_config->get_bool(SETTING_OPENGL_PHONG_SMOOTH_NORMALS);
 
-    if (realistic_mode && smooth_normals_enabled) {
+    if (smooth_normals_enabled) {
         // Use per-corner smooth normals (via IGL)
         using MapMatrixXfUnaligned = Eigen::Map<const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>>;
         using MapMatrixXiUnaligned = Eigen::Map<const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>>;
