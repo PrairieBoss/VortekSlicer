@@ -340,9 +340,7 @@ namespace Slic3r {
         if (classify_printer_model(config->opt_string("printer_model")) != ElegooPrinterType::CC2)
             return fallback_webui;
 
-        std::string web_path = resources_dir() + "/web/elegoolink/lan_service_web/index.html";
-        std::replace(web_path.begin(), web_path.end(), '\\', '/');
-        web_path = "file://" + web_path;
+        std::string web_path = GUI::into_u8(GUI::file_url_from_path(boost::filesystem::path(resources_dir()) / "web/elegoolink/lan_service_web/index.html"));
         const std::string token   = get_cc2_token(config->opt_string("printhost_apikey"));
         const std::string host_ip = Http::get_host_header_value(host);
 
@@ -1162,7 +1160,7 @@ namespace Slic3r {
                                 switch(ack){
                                     case ElegooLinkStartPrintAck::SDCP_PRINT_CTRL_ACK_BUSY:
                                     {   
-                                        error_message =_L("The printer is busy, Please check the device page for the file and try to start printing again.");
+                                        error_message =_L("The printer is busy, please check the device page for the file and try to start printing again.");
                                         break;
                                     }
                                     case ElegooLinkStartPrintAck::SDCP_PRINT_CTRL_ACK_NOT_FOUND:

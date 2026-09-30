@@ -712,6 +712,26 @@ namespace client
         static void regex_matches     (expr &lhs, IteratorRange &rhs) { return regex_op(lhs, rhs, '=', lhs); }
         static void regex_doesnt_match(expr &lhs, IteratorRange &rhs) { return regex_op(lhs, rhs, '!', lhs); }
 
+        // Replace every match of the regular expression 'pattern' in the string 'subject' with 'replacement'.
+        // The replacement may reference capture groups ($1, $2, ...). Store the result into subject.
+        static void regex_replace(expr &subject, IteratorRange &pattern, expr &replacement)
+        {
+            if (subject.type() == TYPE_EMPTY)
+                // Inside an if / else block to be skipped
+                return;
+            if (subject.type() != TYPE_STRING)
+                subject.throw_exception("regex_replace() first parameter must be a string.");
+            try {
+                std::string re(++ pattern.begin(), -- pattern.end());
+                std::string result = SLIC3R_REGEX_NAMESPACE::regex_replace(subject.s(), SLIC3R_REGEX_NAMESPACE::regex(re), replacement.to_string());
+                subject.set_s(std::move(result));
+            } catch (SLIC3R_REGEX_NAMESPACE::regex_error &ex) {
+                // Syntax error in the regular expression
+                boost::throw_exception(qi::expectation_failure<Iterator>(
+                    pattern.begin(), pattern.end(), spirit::info(std::string("*Regular expression compilation failed: ") + ex.what())));
+            }
+        }
+
         static void one_of_test_init(expr &out) {
             out.set_b(false);
         }
@@ -831,6 +851,8 @@ namespace client
         // If true, the macro processor will evaluate just a boolean condition using the full expressive power of the macro processor.
         bool                     just_boolean_expression = false;
         std::string              error_message;
+        // Local variables declared in {if} branches that were not taken, see PlaceholderParser::check_inactive_branches.
+        mutable std::set<std::string> inactive_local_variables;
 
         // Table to translate symbol tag to a human readable error message.
         static std::map<std::string, std::string> tag_to_error_message;
@@ -872,6 +894,8 @@ namespace client
         }
         // Inside a block, which is conditionally suppressed?
         bool skipping() const { return m_depth_suppressed > 0; }
+        // Are variable names resolved inside the suppressed blocks too?
+        bool check_inactive_names() const { return PlaceholderParser::check_inactive_branches && ! just_boolean_expression; }
 
         const ConfigOption* 	optptr(const t_config_option_key &opt_key) const override
         {
@@ -907,7 +931,7 @@ namespace client
 
         static void legacy_variable_expansion(const MyContext *ctx, IteratorRange &opt_key, std::string &output)
         {
-            if (ctx->skipping())
+            if (ctx->skipping() && ! ctx->check_inactive_names())
                 return;
 
             std::string         opt_key_str(opt_key.begin(), opt_key.end());
@@ -929,7 +953,9 @@ namespace client
                 }
             }
             if (opt == nullptr)
-                ctx->throw_exception("Variable does not exist", opt_key);
+                ctx->throw_exception(ctx->skipping() ? "Variable does not exist (in an inactive branch)" : "Variable does not exist", opt_key);
+            if (ctx->skipping())
+                return;
             if (opt->is_scalar()) {
                 if (opt->is_nil())
                     ctx->throw_exception("Trying to reference an undefined (nil) optional variable", opt_key);
@@ -952,9 +978,10 @@ namespace client
             IteratorRange   &opt_vector_index,
             std::string     &output)
         {
-            if (ctx->skipping())
+            if (ctx->skipping() && ! ctx->check_inactive_names())
                 return;
 
+            const char         *not_found = ctx->skipping() ? "Variable does not exist (in an inactive branch)" : "Variable does not exist";
             std::string         opt_key_str(opt_key.begin(), opt_key.end());
             const ConfigOption *opt = ctx->resolve_symbol(opt_key_str);
             if (opt == nullptr) {
@@ -964,18 +991,20 @@ namespace client
                     opt = ctx->resolve_symbol(opt_key_str);
                 }
                 if (opt == nullptr)
-                    ctx->throw_exception("Variable does not exist", opt_key);
+                    ctx->throw_exception(not_found, opt_key);
             }
             if (! opt->is_vector())
                 ctx->throw_exception("Trying to index a scalar variable", opt_key);
+            const ConfigOption *opt_index = ctx->resolve_symbol(std::string(opt_vector_index.begin(), opt_vector_index.end()));
+            if (opt_index == nullptr)
+                ctx->throw_exception(not_found, opt_key);
+            if (opt_index->type() != coInt)
+                ctx->throw_exception("Indexing variable has to be integer", opt_key);
+            if (ctx->skipping())
+                return;
             const ConfigOptionVectorBase *vec = static_cast<const ConfigOptionVectorBase*>(opt);
             if (vec->empty())
                 ctx->throw_exception("Indexing an empty vector variable", opt_key);
-            const ConfigOption *opt_index = ctx->resolve_symbol(std::string(opt_vector_index.begin(), opt_vector_index.end()));
-            if (opt_index == nullptr)
-                ctx->throw_exception("Variable does not exist", opt_key);
-            if (opt_index->type() != coInt)
-                ctx->throw_exception("Indexing variable has to be integer", opt_key);
 			int idx = opt_index->getInt();
 			if (idx < 0)
                 ctx->throw_exception("Negative vector index", opt_key);
@@ -1001,6 +1030,13 @@ namespace client
                     output.writable = true;
                 }
                 output.opt = opt;
+            } else if (ctx->check_inactive_names()) {
+                // Only check the name. Back tracking may resolve the same identifier twice, so there are no side effects.
+                const std::string key{ opt_key.begin(), opt_key.end() };
+                if (ctx->resolve_symbol(key) == nullptr && ctx->resolve_output_symbol(key) == nullptr &&
+                    ctx->inactive_local_variables.count(key) == 0 &&
+                    (ctx->context_data == nullptr || ctx->context_data->inactive_global_variables.count(key) == 0))
+                    ctx->throw_exception("Not a variable name (in an inactive branch)", opt_key);
             }
             output.it_range = opt_key;
         }
@@ -1406,6 +1442,13 @@ namespace client
                     out.opt = ctx->config_local.optptr(key);
                 }
                 out.name     = std::move(key);
+            } else if (ctx->check_inactive_names()) {
+                // Declared in a branch that is not taken: the name still counts as defined for the names that follow.
+                std::string key(it_range.begin(), it_range.end());
+                if (global_variable && ctx->context_data != nullptr)
+                    ctx->context_data->inactive_global_variables.insert(std::move(key));
+                else
+                    ctx->inactive_local_variables.insert(std::move(key));
             }
             out.it_range = it_range;
         }
@@ -1640,8 +1683,8 @@ namespace client
             const OptWithPos  &rhs)
         {
             if (ctx->skipping())
-                // Skipping, continue parsing.
-                return true;
+                // Skipping, let conditional_expression parse the whole right hand side, which may continue after the variable reference.
+                return false;
 
             if (lhs.opt) {
                 assert(lhs.opt->is_vector());
@@ -1771,6 +1814,8 @@ namespace client
             // from UTF8 to UTF16 don't bail out.
             msg += boost::nowide::narrow(boost::nowide::widen(error_line));
             msg += '\n';
+            // The error dialog (MsgDialog.cpp) renders this excerpt monospaced. It recognizes a source
+            // line directly above a caret line of spaces and a single '^'.
             for (size_t i = 0; i < error_pos; ++ i)
                 msg += ' ';
             msg += "^\n";
@@ -2323,6 +2368,8 @@ namespace client
                                                                     [ px::bind(&expr::digits<false>, _val, _2, _3) ]
                 |   (kw["zdigits"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > optional_parameter(_r1))
                                                                     [ px::bind(&expr::digits<true>, _val, _2, _3) ]
+                |   (kw["regex_replace"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > regular_expression > ',' > conditional_expression(_r1) > ')')
+                                                                    [ px::bind(&expr::regex_replace, _val, _2, _3) ]
                 |   (kw["int"]   > '(' > conditional_expression(_r1) > ')') [ px::bind(&FactorActions::to_int,  _1, _val) ]
                 |   (kw["round"] > '(' > conditional_expression(_r1) > ')') [ px::bind(&FactorActions::round,   _1, _val) ]
                 |   (kw["ceil"]  > '(' > conditional_expression(_r1) > ')') [ px::bind(&FactorActions::ceil,    _1, _val) ]
@@ -2404,6 +2451,7 @@ namespace client
                 ("min")
                 ("max")
                 ("random")
+                ("regex_replace")
                 ("filament_change")
                 ("repeat")
                 ("round")
