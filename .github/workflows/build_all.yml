@@ -11,12 +11,14 @@ on:
      - 'src/**'
      - '**/CMakeLists.txt'
      - 'version.inc'
+     - 'cmake/VortekPackaging.cmake'
      - 'localization/**'
      - 'resources/**'
      - ".github/workflows/build_*.yml"
      - ".github/workflows/unit_tests*.yml"
      - 'build_win.bat'
      - 'scripts/test_build_win.ps1'
+     - 'scripts/tests/test_product_identity.py'
      - 'scripts/build_preset_cache.*'
      - 'scripts/flatpak/**'
      - 'scripts/msix/**'
@@ -32,11 +34,13 @@ on:
      - 'src/**'
      - '**/CMakeLists.txt'
      - 'version.inc'
+     - 'cmake/VortekPackaging.cmake'
      - ".github/workflows/build_*.yml"
      - ".github/workflows/unit_tests*.yml"
      - 'build_linux.sh'
      - 'build_win.bat'
      - 'scripts/test_build_win.ps1'
+     - 'scripts/tests/test_product_identity.py'
      - 'build_release_macos.sh'
      - 'scripts/build_preset_cache.*'
      - 'scripts/flatpak/**'
@@ -75,6 +79,15 @@ jobs:
       - name: Run the build script test suite
         shell: powershell
         run: .\scripts\test_build_win.ps1
+
+      - name: Check product identity and Windows resources
+        shell: cmd
+        run: |
+          for /f "usebackq tokens=*" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath`) do set "IDENTITY_VS=%%i"
+          if not defined IDENTITY_VS exit /b 1
+          call "%IDENTITY_VS%\VC\Auxiliary\Build\vcvars64.bat"
+          if errorlevel 1 exit /b 1
+          python -m unittest discover -s scripts/tests -p test_product_identity.py -v
 
   build_linux:
     strategy:

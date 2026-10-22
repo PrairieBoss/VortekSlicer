@@ -434,6 +434,11 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
+          $identity = Get-Content version.inc -Raw
+          if ($identity -notmatch '(?m)^set\(SLIC3R_APP_NAME "([A-Za-z][A-Za-z0-9]*)"\)') {
+            throw 'Expected an alphanumeric SLIC3R_APP_NAME for Windows package filenames.'
+          }
+          "PRODUCT_NAME=$($Matches[1])" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
           if ("${{ inputs.arch }}" -eq "arm64") {
             "BUILD_DIR=build-arm64"  | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
             "ARCH_SUFFIX=_arm64"     | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
@@ -520,7 +525,7 @@ jobs:
         if: runner.os == 'Windows'
         working-directory: ${{ github.workspace }}/${{ env.BUILD_DIR }}
         shell: cmd
-        run: '"C:/Program Files/7-Zip/7z.exe" a -tzip OrcaSlicer_Windows_${{ env.ver }}${{ env.ARCH_SUFFIX }}_portable.zip ${{ github.workspace }}/${{ env.BUILD_DIR }}/OrcaSlicer'
+        run: '"C:/Program Files/7-Zip/7z.exe" a -tzip ${{ env.PRODUCT_NAME }}_Windows_${{ env.ver }}${{ env.ARCH_SUFFIX }}_portable.zip ${{ github.workspace }}/${{ env.BUILD_DIR }}/OrcaSlicer'
 
       - name: Pack PDB
         if: runner.os == 'Windows' && inputs.arch != 'arm64' && !vars.SELF_HOSTED
@@ -532,15 +537,17 @@ jobs:
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v7
         with:
-          name: OrcaSlicer_Windows_${{ env.ver }}${{ env.ARCH_SUFFIX }}_portable
+          name: ${{ env.PRODUCT_NAME }}_Windows_${{ env.ver }}${{ env.ARCH_SUFFIX }}_portable
           path: ${{ github.workspace }}/${{ env.BUILD_DIR }}/OrcaSlicer
+          if-no-files-found: error
 
       - name: Upload artifacts Win installer
         if: runner.os == 'Windows' && !vars.SELF_HOSTED
         uses: actions/upload-artifact@v7
         with:
-          name: OrcaSlicer_Windows_${{ env.ver }}${{ env.ARCH_SUFFIX }}
-          path: ${{ github.workspace }}/${{ env.BUILD_DIR }}/OrcaSlicer*.exe
+          name: ${{ env.PRODUCT_NAME }}_Windows_${{ env.ver }}${{ env.ARCH_SUFFIX }}
+          path: ${{ github.workspace }}/${{ env.BUILD_DIR }}/${{ env.PRODUCT_NAME }}_Windows_Installer_*.exe
+          if-no-files-found: error
 
       - name: Upload artifacts Win PDB
         if: runner.os == 'Windows' && inputs.arch != 'arm64' && !vars.SELF_HOSTED
@@ -590,7 +597,9 @@ jobs:
           max_releases: 1
 
       - name: Build MSIX Store package Win
-        if: runner.os == 'Windows' && !vars.SELF_HOSTED
+        # The inherited publisher/Store identity belongs to upstream. Fork
+        # NSIS/portable artifacts remain available without claiming that identity.
+        if: runner.os == 'Windows' && !vars.SELF_HOSTED && github.repository == 'OrcaSlicer/OrcaSlicer' && env.PRODUCT_NAME == 'OrcaSlicer'
         working-directory: ${{ github.workspace }}
         shell: pwsh
         run: |
@@ -603,7 +612,7 @@ jobs:
             -PublisherDisplayName "${{ vars.ORCA_MSIX_PUBLISHER_DISPLAY_NAME || 'OrcaSlicer' }}"
 
       - name: Upload artifacts Win MSIX
-        if: runner.os == 'Windows' && !vars.SELF_HOSTED
+        if: runner.os == 'Windows' && !vars.SELF_HOSTED && github.repository == 'OrcaSlicer/OrcaSlicer' && env.PRODUCT_NAME == 'OrcaSlicer'
         uses: actions/upload-artifact@v7
         with:
           name: OrcaSlicer_Windows_MSIX_${{ env.ver }}${{ env.ARCH_SUFFIX }}
