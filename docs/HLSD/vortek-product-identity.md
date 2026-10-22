@@ -111,8 +111,14 @@ to this executable before clearing it; a foreign or packaged handler is kept.
 The normal application-update entry point returns before requesting upstream
 OrcaSlicer installer metadata. Manual checks queue an explanatory message on
 the GUI event loop; automatic checks do not show a dialog. Printer/profile
-updates are not disabled. Provider-directed forced upgrades remain a separate
-integration concern rather than a verified fork update channel.
+updates are not disabled. The shared update dispatcher and normal/forced
+notification entry points also reject non-Orca identities before writing
+upgrade state or queuing installer dialogs. A stale provider version response
+therefore cannot offer a foreign installer or force the fork to close through
+these entry points. The native fixture executes all three production methods
+under fork and upstream identities; the upstream dispatch behavior is preserved.
+File-compatibility download links and actual account integration still need
+separate runtime review; no fork update channel is implemented.
 
 Instance checking retains upstream's executable-path hash. Distinct install
 paths and separate lock/cache directories distinguish the products without

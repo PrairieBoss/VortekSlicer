@@ -511,6 +511,86 @@ int main() {
 ''')
 
     @unittest.skipUnless(shutil.which("cl"), "MSVC developer environment not active")
+    def test_update_dispatch_ignores_foreign_installers_and_preserves_upstream(self):
+        source = (ROOT / "src/slic3r/GUI/GUI_App.cpp").read_text(encoding="utf-8")
+        functions = []
+        for name, next_name in (("check_update", "check_new_version"),
+                                ("request_new_version", "enter_force_upgrade"),
+                                ("enter_force_upgrade", "set_skip_version")):
+            begin = source.index("void GUI_App::" + name + "(")
+            end = source.index("void GUI_App::" + next_name + "(", begin)
+            functions.append(source[begin:end])
+        fixture = r'''
+#include "libslic3r_version.h"
+#include <optional>
+#include <string>
+#ifdef TEST_UPSTREAM
+#undef SLIC3R_APP_KEY
+#define SLIC3R_APP_KEY "OrcaSlicer"
+#endif
+struct Semver {
+    static std::optional<int> parse(const std::string& value) {
+        return value == SLIC3R_VERSION ? 1 : 2;
+    }
+};
+struct FakeConfig {
+    int writes = 0;
+    template<class T> void set(const char*, const char*, T) { ++writes; }
+    void set_bool(const char*, bool) { ++writes; }
+};
+struct wxCommandEvent {
+    explicit wxCommandEvent(int type) : type(type) {}
+    int type;
+    void SetString(const std::string&) {}
+    void SetInt(int) {}
+};
+constexpr int EVT_SLIC3R_VERSION_ONLINE = 1, EVT_ENTER_FORCE_UPGRADE = 2;
+struct GUI_App {
+    struct VersionInfo {
+        std::string version_str = "99.0.0", url = "https://example.invalid/upstream-installer";
+        std::string description = "foreign update";
+        bool force_upgrade = false;
+    } version_info;
+    FakeConfig config;
+    FakeConfig* app_config = &config;
+    int normal_events = 0, forced_events = 0, no_version_events = 0;
+    void check_update(bool show_tips, int by_user);
+    void request_new_version(int by_user);
+    void enter_force_upgrade();
+    void no_new_version() { ++no_version_events; }
+    void QueueEvent(wxCommandEvent* event) {
+        if (event->type == EVT_SLIC3R_VERSION_ONLINE) ++normal_events;
+        if (event->type == EVT_ENTER_FORCE_UPGRADE) ++forced_events;
+        delete event;
+    }
+};
+static GUI_App app;
+static GUI_App& wxGetApp() { return app; }
+namespace GUI {
+    static GUI_App& wxGetApp() { return app; }
+    static std::string from_u8(const std::string& value) { return value; }
+}
+''' + "\n".join(functions) + r'''
+int main() {
+    app.check_update(true, 1);
+    app.version_info.force_upgrade = true;
+    app.check_update(true, 1);
+    app.request_new_version(1);
+    app.enter_force_upgrade();
+#ifdef TEST_UPSTREAM
+    if (app.normal_events != 2 || app.forced_events != 2 || app.config.writes != 5) return 1;
+#else
+    if (app.normal_events || app.forced_events || app.config.writes || app.no_version_events) return 2;
+#endif
+    return 0;
+}
+'''
+        for upstream in (False, True):
+            with self.subTest(upstream=upstream):
+                prefix = "#define TEST_UPSTREAM\n" if upstream else ""
+                self.compile_and_run("update_dispatch_" + str(upstream), prefix + fixture)
+
+    @unittest.skipUnless(shutil.which("cl"), "MSVC developer environment not active")
     def test_fork_update_checks_do_not_request_upstream_installers(self):
         # Exercise the production entry guard, with the downstream network
         # operation represented by a counter and UI work queued on a fake app.

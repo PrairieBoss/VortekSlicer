@@ -5776,6 +5776,9 @@ void GUI_App::reset_to_active()
 
 void GUI_App::check_update(bool show_tips, int by_user)
 {
+    // Upstream installer metadata must never replace or force-close a fork.
+    if (std::string(SLIC3R_APP_KEY) != "OrcaSlicer")
+        return;
     if (version_info.version_str.empty()) return;
     if (version_info.url.empty()) return;
 
@@ -6381,6 +6384,9 @@ bool GUI_App::process_network_msg(std::string dev_id, std::string msg)
 //BBS pop up a dialog and download files
 void GUI_App::request_new_version(int by_user)
 {
+    // Upstream installer metadata must never replace or force-close a fork.
+    if (std::string(SLIC3R_APP_KEY) != "OrcaSlicer")
+        return;
     wxCommandEvent* evt = new wxCommandEvent(EVT_SLIC3R_VERSION_ONLINE);
     evt->SetString(GUI::from_u8(version_info.version_str));
     evt->SetInt(by_user);
@@ -6389,6 +6395,9 @@ void GUI_App::request_new_version(int by_user)
 
 void GUI_App::enter_force_upgrade()
 {
+    // Upstream installer metadata must never replace or force-close a fork.
+    if (std::string(SLIC3R_APP_KEY) != "OrcaSlicer")
+        return;
     wxCommandEvent *evt = new wxCommandEvent(EVT_ENTER_FORCE_UPGRADE);
     GUI::wxGetApp().QueueEvent(evt);
 }
