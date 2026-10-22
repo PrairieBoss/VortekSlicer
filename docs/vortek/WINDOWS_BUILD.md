@@ -231,3 +231,76 @@ CURL subsequently compiled and installed against this dependency. This local
 workaround has not established a clean-checkout build or full OpenSSL test
 result. Re-extraction replaces the generated Makefile adjustment; logs and
 the active dependency command are recorded in the status file.
+
+## Bundled Python debug-symbol workaround
+
+The normal Python build reached MSVC C1902 (program database manager mismatch).
+The installed compiler/PDB DLL file versions matched, so the host service's root
+cause remains unresolved. A target-scoped object-symbol override built and
+installed Python 3.12.13 without changing installed toolchain files:
+
+```powershell
+$env:_CL_ = '/Z7'
+.\build_win.bat -d -t dep_python3 --vs 2022 -j 2 --no-configure
+Remove-Item Env:\_CL_
+```
+
+Use the normal environment above, including `EXTERNALS_DIR` and `PYTHON`.
+Unlike OpenSSL, Python required no generated install-rule adjustment. The staged
+64-bit interpreter passed isolated startup, SSL/ctypes imports, zlib/bz2/lzma
+round trips, and an in-memory SQLite create/insert/query. This validates the
+staged interpreter and selected modules, not the complete Python test suite.
+Logs: `python-z7-20261022.log` and `python-runtime-20261022.log` in the build log
+directory, both with zero exit checkpoints.
+
+## Verified offline wxWidgets source
+
+wxWidgets uses Git rather than one of the 27 hash-pinned archive downloads.
+Its upstream recipe names branch `v3.3.2`, not a tag. On 2026-10-22 the official
+branch resolved to `88f3483ca546fbf4ad732e1acd94cc930935077a`, tree
+`36690131b619fe14706f8429c38d242abd304d2f`. The archived checkout was its parent
+`db1005db3dea2c37a46fb455a9a02e37aa360751`, not the required complete revision.
+GitHub's commit response identifies one changed file,
+`build/cmake/wxWidgetsConfig.cmake.in`, blob
+`2593c045b89b9fd191b8a27adf8c5247602acb59`.
+
+The source cache was reconstructed from the archived Git objects and that
+exact official blob. The resulting Git root tree matched the official commit;
+every exported file was checked against its Git blob hash. Required catch,
+pcre and libwebp exports matched their parent gitlinks. No generated build
+outputs were copied. Commit, tree, submodule hashes and file counts are recorded
+in `DEPENDENCY_CACHE_PROVENANCE.json`; this is Git-content verification, not an
+upstream archive SHA-256 claim.
+
+The optional `ORCA_WXWIDGETS_SOURCE_DIR` cache variable supplies a verified source
+tree without Git download/update operations. It requires the main source and
+all three required submodules at configure time. Its presence checks do not
+verify provenance: audit the supplied revision and file contents first. The
+normal online checkout remains unchanged when the option is empty.
+
+```powershell
+$env:ORCA_DEPS_CMAKE_ARGS = '-DORCA_WXWIDGETS_SOURCE_DIR=C:/Vortek_Manufacturing/Tools/VortekSlicer/deps/DL_CACHE/wxWidgets/88f3483ca546fbf4ad732e1acd94cc930935077a'
+.\build_win.bat -d -t dep_wxWidgets --vs 2022 -j 2
+```
+
+The path is persisted in `deps/build/CMakeCache.txt`. To return to the online
+recipe, configure with `-DORCA_WXWIDGETS_SOURCE_DIR=` through the same extra-args
+variable; merely clearing the environment does not clear a CMake cache entry.
+The three focused CMake tests preserve the default Git recipe, execute offline
+download/update targets with a path containing spaces without changing source
+files, and reject each missing required source component. Run with:
+
+```powershell
+python -m unittest discover -s scripts/tests -p test_wxwidgets_build_config.py -v
+```
+
+The first offline wx configure then reached its secondary NuGet dependency.
+`webview2.nuget` in the archived build matched the required WebView2 SDK
+1.0.3485.44 SHA-256
+`bc09150b179246ac90189649b13be8e6b11b3ac200e817e18df106e1f3cf489e`.
+That verified archive was copied into `deps/DL_CACHE/wxWidgets/` and freshly
+extracted into the new wx build's default
+`libs/webview/packages/Microsoft.Web.WebView2.1.0.3485.44` directory. No archived
+compiled wx libraries were reused. A clean build must likewise stage this
+verified SDK package or retrieve it normally; the source override alone does
+not supply secondary dependencies.

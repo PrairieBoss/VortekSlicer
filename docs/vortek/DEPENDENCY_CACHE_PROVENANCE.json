@@ -64,5 +64,40 @@
       "file_count": 253,
       "verified_git_tree": "7a0132f74b8152a3c8cab5cdaaac42234181d5b5"
     }
-  ]
+  ],
+  "wxWidgets": {
+    "repo": "https://github.com/SoftFever/Orca-deps-wxWidgets",
+    "ref": "refs/heads/v3.3.2",
+    "commit": "88f3483ca546fbf4ad732e1acd94cc930935077a",
+    "tree": "36690131b619fe14706f8429c38d242abd304d2f",
+    "verified_date": "2026-10-22",
+    "verification": "Exported cached Git objects plus official GitHub configuration blob; reconstructed root tree matched official commit tree, and every exported file matched its Git blob hash. No archived build outputs copied.",
+    "file_count": 6145,
+    "submodules": [
+      {
+        "path": "3rdparty/catch",
+        "commit": "3a4a6a657d295d003e16bcdba45c2832e24b9dec",
+        "tree": "89968b1eab27e97890328a743842bf54179cf8dc",
+        "file_count": 392
+      },
+      {
+        "path": "3rdparty/pcre",
+        "commit": "4f76619e6f20de93f77b5ef6213bf54e0399d166",
+        "tree": "3c26ac3e9ff1b9b662084e58623db379868357e1",
+        "file_count": 525
+      },
+      {
+        "path": "3rdparty/libwebp",
+        "commit": "e83df81cc965a47c1ca7cc968d1ed99717c55ab7",
+        "tree": "74da05796a0e5fb6d3bcf17eb15798b071da79a7",
+        "file_count": 344
+      }
+    ],
+    "webview2": {
+      "version": "1.0.3485.44",
+      "url": "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2/1.0.3485.44",
+      "sha256": "bc09150b179246ac90189649b13be8e6b11b3ac200e817e18df106e1f3cf489e",
+      "verification": "Recovered archive matched SHA-256 pinned by wxWidgets build/cmake/lib/webview/CMakeLists.txt; extracted fresh into the new build package directory."
+    }
+  }
 }

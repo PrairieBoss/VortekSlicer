@@ -30,12 +30,30 @@ if (APPLE)
     )
 endif ()
 
+# An offline source export must contain the same verified revision and gitlink
+# contents as the online checkout. No download or update step may replace it.
+set(ORCA_WXWIDGETS_SOURCE_DIR "" CACHE PATH "Verified wxWidgets source tree for offline builds")
+if(ORCA_WXWIDGETS_SOURCE_DIR)
+    get_filename_component(_wx_source_dir "${ORCA_WXWIDGETS_SOURCE_DIR}" ABSOLUTE)
+    foreach(_wx_required CMakeLists.txt include/wx/version.h
+            3rdparty/catch/CMakeLists.txt 3rdparty/pcre/CMakeLists.txt
+            3rdparty/libwebp/CMakeLists.txt)
+        if(NOT EXISTS "${_wx_source_dir}/${_wx_required}")
+            message(FATAL_ERROR "Incomplete ORCA_WXWIDGETS_SOURCE_DIR: missing ${_wx_required}")
+        endif()
+    endforeach()
+    set(_wx_source SOURCE_DIR "${_wx_source_dir}" DOWNLOAD_COMMAND "" UPDATE_COMMAND "")
+else()
+    set(_wx_source
+        GIT_REPOSITORY "https://github.com/SoftFever/Orca-deps-wxWidgets"
+        GIT_TAG v3.3.2
+        GIT_SHALLOW ON
+        GIT_SUBMODULES 3rdparty/catch 3rdparty/pcre 3rdparty/libwebp)
+endif()
+
 orcaslicer_add_cmake_project(
     wxWidgets
-    GIT_REPOSITORY "https://github.com/SoftFever/Orca-deps-wxWidgets"
-    GIT_TAG v3.3.2
-    GIT_SHALLOW ON
-    GIT_SUBMODULES 3rdparty/catch 3rdparty/pcre 3rdparty/libwebp
+    ${_wx_source}
     PATCH_COMMAND ${_wx_patch_command}
     DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} ${JPEG_PKG}
     CMAKE_ARGS
