@@ -151,6 +151,89 @@ int main() { return 0; }
         self.assertGreater((self.work / "identity.res").stat().st_size, 0)
 
     @unittest.skipUnless(shutil.which("cl"), "MSVC developer environment not active")
+    def test_startup_ignores_upstream_portable_data_and_honors_explicit_override(self):
+        # Use the production selection code with a fake wx path provider and
+        # real filesystem fixtures, all inside this test's temporary directory.
+        source = (ROOT / "src/slic3r/GUI/GUI_App.cpp").read_text(encoding="utf-8")
+        begin = source.index("void GUI_App::init_app_config()")
+        end = source.index("    // start log here", begin)
+        selection = source[begin:end] + "\n}\n"
+        source = (ROOT / "src/libslic3r/AppConfig.cpp").read_text(encoding="utf-8")
+        begin = source.index("std::string AppConfig::config_path()")
+        end = source.index("std::string AppConfig::version_check_url()", begin)
+        config_path = source[begin:end]
+        self.compile_and_run("data_isolation", r'''
+#include "libslic3r_version.h"
+#include <filesystem>
+#include <fstream>
+#include <string>
+namespace fs = std::filesystem;
+namespace boost { namespace filesystem = std::filesystem; }
+static fs::path executable, user_root;
+static std::string selected, app_name, display_name;
+struct PathString {
+    std::string value;
+    const std::string& ToUTF8() const { return value; }
+};
+struct wxStandardPaths {
+    static wxStandardPaths& Get() { static wxStandardPaths paths; return paths; }
+    PathString GetExecutablePath() { return {executable.string()}; }
+    PathString GetUserDataDir() { return {(user_root / app_name).string()}; }
+};
+const std::string& data_dir() { return selected; }
+void set_data_dir(const std::string& path) { selected = path; }
+namespace Slic3r { using ::data_dir; }
+std::string encode_path(const char* path) { return path; }
+int fake_chdir(const char*) { return 0; }
+#define _chdir fake_chdir
+struct GUI_App {
+    bool m_datadir_redefined = false;
+    void SetAppName(const char* name) { app_name = name; }
+    void SetAppDisplayName(const char* name) { display_name = name; }
+    void init_app_config();
+};
+#define USE_JSON_CONFIG
+struct AppConfig {
+    enum class EAppMode { Editor, GCodeViewer };
+    EAppMode m_mode = EAppMode::Editor;
+    std::string config_path();
+};
+''' + selection + config_path + r'''
+int main() {
+    const fs::path root = fs::current_path() / "data-fixture";
+    executable = root / "install" / "orca-slicer.exe";
+    user_root = root / "Roaming";
+    fs::create_directories(executable.parent_path() / "data_dir");
+    fs::create_directories(user_root / "OrcaSlicer");
+    const auto sentinel = executable.parent_path() / "data_dir" / "keep.txt";
+    std::ofstream(sentinel) << "upstream data";
+    GUI_App app;
+    app.init_app_config();
+    if (app_name != "VortekSlicer" || display_name != "VortekSlicer") return 1;
+    if (fs::path(selected) != user_root / "VortekSlicer") return 2;
+    if (!fs::is_directory(selected) || app.m_datadir_redefined) return 3;
+    AppConfig config;
+    if (fs::path(config.config_path()) != fs::path(selected) / "VortekSlicer.conf") return 4;
+    config.m_mode = AppConfig::EAppMode::GCodeViewer;
+    if (fs::path(config.config_path()) != fs::path(selected) / "VortekSlicerGcodeViewer.conf") return 5;
+    const auto portable = executable.parent_path() / "VortekSlicer-data";
+    fs::create_directory(portable);
+    selected.clear();
+    app.init_app_config();
+    if (fs::path(selected) != portable || app.m_datadir_redefined) return 6;
+    const auto explicit_dir = root / "explicit-data";
+    fs::create_directory(explicit_dir);
+    selected = explicit_dir.string();
+    app.init_app_config();
+    if (fs::path(selected) != explicit_dir || !app.m_datadir_redefined) return 7;
+    std::string original;
+    std::getline(std::ifstream(sentinel), original);
+    if (original != "upstream data") return 8;
+    return 0;
+}
+''')
+
+    @unittest.skipUnless(shutil.which("cl"), "MSVC developer environment not active")
     def test_disassociation_preserves_foreign_registry_values(self):
         # Compile the actual production helper against fake Win32 calls. This
         # exercises ownership and failure paths without changing HKCU/HKLM.
