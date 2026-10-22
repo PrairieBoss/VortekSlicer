@@ -25,6 +25,14 @@ $repoRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 # MSIX version = MAJOR.MINOR.PATCH.0 from the SoftFever_VERSION semver triplet
 # (Store requires the revision field to be 0).
 $versionContent = Get-Content (Join-Path $repoRoot 'version.inc') -Raw
+if ($versionContent -notmatch 'set\(SLIC3R_APP_KEY "([^"]+)"\)') {
+    throw "Could not parse SLIC3R_APP_KEY from version.inc"
+}
+if ($Matches[1] -ne 'OrcaSlicer') {
+    # The upstream manifest claims Orca's Store publisher, protocols, alias,
+    # migration ProgID and AppData exclusion. Never stage that identity for a fork.
+    throw "MSIX identity and assets are not configured for this fork. Use the VortekSlicer NSIS package; MSIX requires a reviewed fork manifest and publisher."
+}
 if ($versionContent -notmatch 'set\(SoftFever_VERSION "(\d+)\.(\d+)\.(\d+)') {
     throw "Could not parse SoftFever_VERSION from version.inc"
 }

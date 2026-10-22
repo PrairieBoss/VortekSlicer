@@ -280,10 +280,7 @@ std::string VersionInfo::convert_short_version(std::string full_version)
 #ifdef _WIN32
 bool is_associate_files(std::wstring extend)
 {
-    wchar_t app_path[MAX_PATH];
-    ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
-
-    std::wstring prog_id             = L" Orca.Slicer.1";
+    std::wstring prog_id             = boost::nowide::widen(SLIC3R_PROJECT_PROG_ID);
     std::wstring reg_base            = L"Software\\Classes";
     std::wstring reg_extension       = reg_base + L"\\." + extend;
 
@@ -293,12 +290,7 @@ bool is_associate_files(std::wstring extend)
 
     int iRC = ::RegGetValueW(HKEY_CURRENT_USER, reg_extension.c_str(), nullptr, RRF_RT_ANY, &dwType, szValueCurrent, &dwSize);
 
-    bool bDidntExist = iRC == ERROR_FILE_NOT_FOUND;
-
-    if (!bDidntExist && ::wcscmp(szValueCurrent, prog_id.c_str()) == 0)
-        return true;
-
-    return false;
+    return iRC == ERROR_SUCCESS && dwType == REG_SZ && ::wcscmp(szValueCurrent, prog_id.c_str()) == 0;
 }
 #endif
 
@@ -438,7 +430,7 @@ private:
     wxColour m_progress_bg_color;
     wxColour m_progress_fg_color;
 
-    wxString m_text_version = GUI_App::format_display_version();
+    wxString m_text_version = SLIC3R_APP_NAME " " + GUI_App::format_display_version();
     wxString m_text_action  = _L("Loading configuration") + dots;
     int      m_progress     = 0;
     int      m_progress_h   = 6;
@@ -2554,6 +2546,7 @@ void GUI_App::init_app_config()
 {
 	// Profiles for the alpha are stored into the PrusaSlicer-alpha directory to not mix with the current release.
     SetAppName(SLIC3R_APP_KEY);
+    SetAppDisplayName(SLIC3R_APP_NAME);
 //	SetAppName(SLIC3R_APP_KEY "-alpha");
 //  SetAppName(SLIC3R_APP_KEY "-beta");
 //	SetAppDisplayName(SLIC3R_APP_NAME);
@@ -2575,7 +2568,7 @@ void GUI_App::init_app_config()
         // On macOS, the executable is inside the .app bundle.
         _app_folder = _app_folder.parent_path().parent_path().parent_path();
 #endif
-        boost::filesystem::path app_data_dir_path = _app_folder / "data_dir";
+        boost::filesystem::path app_data_dir_path = _app_folder / SLIC3R_PORTABLE_DATA_DIR;
         if (boost::filesystem::exists(app_data_dir_path)) {
             set_data_dir(app_data_dir_path.string());
         }
@@ -3197,7 +3190,9 @@ bool GUI_App::on_init_inner()
             associate_files(L"step");
             associate_files(L"stp");
         }
-        associate_url(L"orcaslicer");
+        // A fork must not take over an installed OrcaSlicer's login/download links.
+        if (std::string(SLIC3R_APP_KEY) == "OrcaSlicer")
+            associate_url(L"orcaslicer");
 
         if (app_config->get("associate_gcode") == "true")
             associate_files(L"gcode");
@@ -7982,7 +7977,7 @@ bool GUI_App::load_language(wxString language, bool initial)
                     // There seems to be a support for that on Windows and OSX, while on Linuxes the code just returns wxLocale::GetSystemLanguage().
                     // The last parameter gets added to the list of detected dictionaries. This is a workaround
                     // for not having the English dictionary. Let's hope wxWidgets of various versions process this call the same way.
-                    wxString best_language = wxTranslations::Get()->GetBestTranslation(SLIC3R_APP_KEY, wxLANGUAGE_ENGLISH);
+                    wxString best_language = wxTranslations::Get()->GetBestTranslation(SLIC3R_TRANSLATION_DOMAIN, wxLANGUAGE_ENGLISH);
                     if (!best_language.IsEmpty()) {
                         m_language_info_best = wxLocale::FindLanguageInfo(best_language);
                         BOOST_LOG_TRIVIAL(info) << boost::format("Best translation language detected (may be different from user locales): %1%") %
@@ -8151,7 +8146,7 @@ bool GUI_App::load_language(wxString language, bool initial)
     // Override language at the active wxTranslations class (which is stored in the active m_wxLocale)
     // to load possibly different dictionary, for example, load Czech dictionary for Slovak language.
     wxTranslations::Get()->SetLanguage(language_dict);
-    m_wxLocale->AddCatalog(SLIC3R_APP_KEY);
+    m_wxLocale->AddCatalog(SLIC3R_TRANSLATION_DOMAIN);
     m_active_language_code = requested_language_code;
     m_imgui->set_language(into_u8(requested_language_code));
 
@@ -8589,7 +8584,8 @@ void GUI_App::open_preferences(PreferencesTab tab, const std::string& highlight_
                     associate_files(L"step");
                     associate_files(L"stp");
                 }
-                associate_url(L"orcaslicer");
+                if (std::string(SLIC3R_APP_KEY) == "OrcaSlicer")
+                    associate_url(L"orcaslicer");
             }
             else {
                 if (app_config->get("associate_gcode") == "true")
@@ -9770,8 +9766,10 @@ static bool del_win_registry(HKEY hkeyHive, const wchar_t *pszVar, const wchar_t
     if ((iRC != ERROR_SUCCESS) && !bDidntExist)
         return false;
 
-    if (!bDidntExist) {
-        iRC      = ::RegDeleteKeyExW(hkeyHive, pszVar, KEY_ALL_ACCESS, 0);
+    // Another application may have taken over the association since it was set.
+    // Never delete its key while removing this application's association.
+    if (!bDidntExist && dwType == REG_SZ && ::wcscmp(szValueCurrent, pszValue) == 0) {
+        iRC      = ::RegDeleteKeyExW(hkeyHive, pszVar, 0, 0);
         if (iRC == ERROR_SUCCESS) {
             return true;
         }
@@ -9793,8 +9791,8 @@ void GUI_App::associate_files(std::wstring extend)
     ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
 
     std::wstring prog_path = L"\"" + std::wstring(app_path) + L"\"";
-    std::wstring prog_id = L" Orca.Slicer.1";
-    std::wstring prog_desc = L"OrcaSlicer";
+    std::wstring prog_id = boost::nowide::widen(SLIC3R_PROJECT_PROG_ID);
+    std::wstring prog_desc = boost::nowide::widen(SLIC3R_APP_NAME);
     std::wstring prog_command = prog_path + L" \"%1\"";
     std::wstring reg_base = L"Software\\Classes";
     std::wstring reg_extension = reg_base + L"\\." + extend;
@@ -9820,8 +9818,8 @@ void GUI_App::disassociate_files(std::wstring extend)
     ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
 
     std::wstring prog_path = L"\"" + std::wstring(app_path) + L"\"";
-    std::wstring prog_id = L" Orca.Slicer.1";
-    std::wstring prog_desc = L"OrcaSlicer";
+    std::wstring prog_id = boost::nowide::widen(SLIC3R_PROJECT_PROG_ID);
+    std::wstring prog_desc = boost::nowide::widen(SLIC3R_APP_NAME);
     std::wstring prog_command = prog_path + L" \"%1\"";
     std::wstring reg_base = L"Software\\Classes";
     std::wstring reg_extension = reg_base + L"\\." + extend;
