@@ -8,17 +8,17 @@ work by product value and dependencies.
 | --- | --- | --- | --- |
 | 1 | Complete active GUI/CAD application build, tests and install | All 32 dependency targets passed; application build running | Application, tests, translations and install exits recorded separately |
 | 2 | Validate application integration with staged Python | Python 3.12.13 built/staged; isolated SSL, ctypes, compression and SQLite checks passed | Application links and uses its bundled runtime successfully |
-| 3 | Recover pinned optional uv package installer | Official archive unavailable through current execution DNS; core build continues | Exact 0.11.21 archive hash matches CMake pin; staging and package operations checked |
-| 4 | Test clean startup and co-installation | Product executable | Orca and Vortek config directories remain distinct; original data unchanged |
-| 5 | Test cube import, transforms, slice, preview, G-code, and project round trip | Working GUI | Saved test project/G-code and documented results, no physical print |
-| 6 | Runtime-test the updater guard; review forced upgrades and cloud callbacks | Product executable; provider integration review | Normal checks offer no upstream installer; login does not seize Orca's protocol |
-| 7 | Apply verified Vortek icon/splash/About assets | Existing design candidate located; download/selection pending | Resource compilation and visual checks at common Windows scaling values |
-| 8 | Finish visible branding without replacing compatibility identifiers | GUI and localization checks | Main flows identify Vortek; required upstream credits remain |
-| 9 | Build an internal NSIS/portable candidate | Tested install tree | Separate install/uninstall behavior, complete DLL/resources/license layout |
-| 10 | Document and verify profile import/creation | Working validator and slicer | Malformed fixtures fail; verified settings round-trip; no invented production profiles |
-| 11 | Enable isolated MSIX packaging only if needed | Verified publisher/assets and reviewed manifest | Distinct identity, protocols, alias, data exclusion, upgrade and uninstall tests |
-| 12 | Run the adapted Windows CI on GitHub | Write access; locally checked workflow changes committed | Native identity suite and product-aware NSIS/portable artifacts pass on hosted runners |
-| 13 | Validate a clean checkout and clean-machine deployment | Full candidate build | Independent reproducible build and runtime dependencies confirmed |
+| 3 | Test clean startup and co-installation | Product executable | Orca and Vortek config directories remain distinct; original data unchanged |
+| 4 | Test cube import, transforms, slice, preview, G-code, and project round trip | Working GUI | Saved test project/G-code and documented results, no physical print |
+| 5 | Runtime-test the updater guard; review forced upgrades and cloud callbacks | Product executable; provider integration review | Normal checks offer no upstream installer; login does not seize Orca's protocol |
+| 6 | Apply verified Vortek icon/splash/About assets | Existing design candidate located; download/selection pending | Resource compilation and visual checks at common Windows scaling values |
+| 7 | Finish visible branding without replacing compatibility identifiers | GUI and localization checks | Main flows identify Vortek; required upstream credits remain |
+| 8 | Build an internal NSIS/portable candidate | Tested install tree | Separate install/uninstall behavior, complete DLL/resources/license layout |
+| 9 | Document and verify profile import/creation | Working validator and slicer | Malformed fixtures fail; verified settings round-trip; no invented production profiles |
+| 10 | Run the adapted Windows CI on GitHub | Write access; locally checked workflow changes committed | Native identity suite and product-aware NSIS/portable artifacts pass on hosted runners |
+| 11 | Validate a clean checkout and clean-machine deployment | Full candidate build | Independent reproducible build and runtime dependencies confirmed |
+| 12 | Enable isolated MSIX packaging only if needed | Verified publisher/assets and reviewed manifest | Distinct identity, protocols, alias, data exclusion, upgrade and uninstall tests |
+| 13 | Recover pinned optional uv package installer | Official archive unavailable through current execution DNS; core build continues | Exact 0.11.21 archive hash matches CMake pin; staging and package operations checked |
 
 Independent maintenance tasks:
 

@@ -18,6 +18,7 @@ Last verified: 2026-10-22, America/Regina.
 - Product diagnostic/support destinations: `3472ffa022`.
 - Bundled-Python project limit: `ce04347a92` (separate build correction).
 - Verified offline wx source support, fixture and CI integration: `6b1fe70131`.
+- Translated welcome identity and native handoff: `c779015a67`.
 - Preserved validation branch: `codex/windows-build-validation` at `9714136543`.
 - Earlier profile-tool correction: `dcd5382b5c`; build records: `75f87f5d1e`, `9714136543`.
 - Source synchronization baseline: `04684c58f935fc5beaba4d5959dcd7741c6a22d1`.
@@ -308,7 +309,7 @@ intact. No graphics were invented or replaced.
 | Combined script suite after fork changes | 274 run, 273 passed, one existing upstream local-clone skip; 146.812 seconds, exit zero with VS2022 active |
 | Fork identity suite | 14/14 passed with VS2022/Windows SDK active; latest run 15.035 seconds, including upstream G-code compatibility and native welcome identity handoff |
 | Welcome JavaScript | Four tests passed against all 15 shipped locale dictionaries, including translation event order, literal text and upstream fallback |
-| Existing Windows CI step | Updated extracted step passed locally with VS2026: 12 identity tests (9.174 s), Python fixture (0.177 s), wx fixtures (8.513 s); four earlier package-variable fixtures passed; no GitHub run |
+| Existing Windows CI step | Current extracted step passed locally with VS2026: 14 identity (14.102 s), Python config (0.328 s), wx config (11.806 s), console (1.952 s), welcome JS (0.597 s): 23 tests total; no GitHub run |
 | Python build configuration | One test/four environment fixtures passed; actual generated command contains the one-project limit |
 | Python external bootstrap | Six exact official Git trees verified; pinned bootstrap script exited zero using only cached entries |
 | Bundled Python runtime | Python 3.12.13 compiled/staged with scoped `/Z7`; isolated imports, compression and SQLite checks passed |
@@ -326,7 +327,9 @@ intact. No graphics were invented or replaced.
 | GUI, slicing, preview, G-code, project round trip | Not runtime-validated |
 | Installer and clean-machine deployment | Not built/run |
 
-Fork logs: `build-validation-logs/product-identity-portable-20261022.log`,
+Latest combined check log: `build-validation-logs/ci-product-checks-20261022.log`
+and matching zero exit checkpoint. This is a locally extracted workflow step,
+not a hosted CI run. Earlier fork logs: `build-validation-logs/product-identity-portable-20261022.log`,
 `build-validation-logs/association-path-before.log`,
 `build-validation-logs/portable-file-before.log`, and
 `build-validation-logs/script-tests-product.log` (combined discovery). These focused
@@ -338,6 +341,17 @@ reported successful Windows build-script tests and Windows x64 application
 unit tests. Its Windows portable/installer/MSIX artifacts exist, but predate
 all product changes and could not be materialized for local smoke tests.
 They must not be presented as validation of this branch.
+
+The launcher's actual OpenGL version-check class compiled in a standalone
+VS2022 probe and created/destroyed its normal hidden context successfully.
+The host reported OpenGL 4.6.0 / GLSL 4.60, Intel Arc 140V GPU, driver
+32.0.101.6314; the >=3.3 check exited zero. Logs:
+`opengl-probe-build.log` and `opengl-probe-run.log`, checkpoint
+`opengl-probe.exit`. This checks the host's initial graphics path, not the
+application canvas, preview, or 3MF thumbnail rendering. No graphics driver or
+runtime was installed. The prepared disposable CLI smoke script is
+`build-validation-temp/smoke_cli.py`; it has not run because the executable is
+still compiling. It uses shipped profiles and preserves input hashes.
 
 ## Graphics availability
 

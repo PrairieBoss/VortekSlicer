@@ -4,78 +4,50 @@ Target: synchronized `main` after upstream synchronization PR #2 is merged.
 Source branch: `codex/vortek-product-identity`.
 Do not open against the obsolete main baseline or merge automatically.
 
-VortekSlicer previously used OrcaSlicer's application-data key, Windows
-associations, credentials namespace, and installer identity. This change
-introduces a separate product identity while retaining upstream build targets,
-launcher/DLL names, profiles, translation catalogs, and attribution.
+VortekSlicer previously shared OrcaSlicer's product name, configuration key,
+Windows associations, credential service and installer identity. The fork now
+uses its own identities while retaining upstream binary names, profile/project
+formats, translation catalogs, licenses and attribution.
 
-The fork now supplies its name and vendor to generated resources and GUI
-captions. Normal and portable configuration, model-file ProgIDs, credential
-storage, and package upgrade identities are separated from OrcaSlicer.
-Association changes also stop when executable-path lookup fails or truncates,
-and portable discovery preserves a same-named regular file. Removing an
-association checks its current owner; automatic upstream URL
-protocol takeover is prevented. The existing MSIX script fails before staging
-a fork under OrcaSlicer's publisher/Store identity.
-Diagnostic/support links and archive names identify the fork. Existing Windows
-CI uses product-aware installer/artifact names, skips upstream-only MSIX, and
-runs the focused native tests in its build-script check job.
+Generated identity drives native captions, splash/About text, Windows metadata,
+normal/portable/viewer configuration, model ProgIDs, credential service and
+CPack/NSIS metadata. Association changes verify ownership and decline failed or
+truncated executable paths. Portable discovery ignores a same-named regular
+file. The fork avoids upstream protocol takeover and normal installer-update
+checks; inherited MSIX staging is blocked before changes. Support/diagnostic
+links identify the fork. The web welcome page applies the native name to two
+translated text nodes, preserving all 15 locale dictionaries and navigation.
 
-A separate Windows CLI correction preserves inherited stdin/stdout/stderr
-instead of replacing pipes/files/NUL with console streams. The failure was
-reproduced with native CRT capture; a real Win32/CRT regression fixture covers
-pipes with/without a console, file redirection and a partially missing stream.
+Separate corrections preserve redirected Windows CLI streams and retain
+upstream generated G-code headers for configuration import. Build corrections
+bound CPython's inner project parallelism and allow verified offline wx source
+exports while preserving the normal upstream checkout. The existing Windows
+workflow runs focused checks and uses product-aware artifact names.
 
-Configuration import also explicitly retains the upstream generated G-code
-header alongside fork and legacy headers; unrelated producers remain rejected.
+Validation:
 
-The web welcome page also receives the native product name in its heading
-and setup sentence, preserving 15 locale dictionaries and the original
-navigation helper. Four JavaScript tests cover locale text, event order,
-literal name handling and upstream fallback; real webview layout remains untested.
+- All 32 Windows dependency targets completed successfully with VS2022.
+  Local PDB workarounds, verified caches, exact wx commit/submodules, WebView2
+  archive hash and commands are documented in WINDOWS_BUILD.md and the cache
+  provenance record; a clean-checkout build has not been established.
+- Fourteen focused identity/native/resource tests pass with VS2022. The full
+  changed Config test file passed MSVC syntax checking; execution is pending.
+- The current extracted Windows CI step passed locally with VS2026: 23 tests
+  across identity, Python/wx configuration, console handling and welcome JS.
+  This is not a hosted CI result.
+- Staged Python 3.12.13 passed selected isolated runtime checks. OpenSSL/OpenCV
+  installed-library probes, actual wx path resolution, WebView2 detection and
+  the launcher's OpenGL >=3.3 probe passed independently of the application.
 
-Validation: fourteen focused tests pass with VS2022 and Windows SDK active. They
-include generated identity/resource checks, C++ compile/run probes, mocked
-registry ownership/error cases, Windows resource compilation, x64/ARM64 CPack
-configuration, the MSIX early-failure staging-preservation check, and actual
-startup/config-file selection code with isolated filesystem fixtures.
-`git diff --check` passes.
-The earlier extracted CI batch step passed locally with the installed VS2026
-toolchain: eleven identity checks and the Python build fixture. The current
-twelve-test identity suite passed with VS2022 after the later path-safety fixes.
-The PowerShell package-variable step passed four product/architecture fixtures.
-No GitHub workflow run has validated these changes yet.
-The combined script suite ran 274 tests with VS2022 active: 273 passed and
-one existing developer-local Bambu clone test was skipped (146.812 seconds).
-An isolated later Windows build correction propagates an explicit CMake project
-limit to bundled Python's nested MSBuild. Its separate four-case configuration
-test passed. Keep that build fix independently reviewable from branding.
+The product application is still compiling with GUI/CAD/tests enabled and
+SLIC3R_MSVC_PDB=OFF. No current product executable, GUI workflow, slicing/export,
+project round trip, live association/credential behavior, installer operation
+or clean-machine deployment is claimed. The optional pinned uv package
+installer is unavailable through current execution DNS. Existing upstream
+icons/splash remain until verified Vortek assets are selected. There is no
+automatic account/configuration migration; cloud callbacks and provider upgrade
+handling still need runtime acceptance. Public release is outside this PR.
 
-The product identity changes are **implemented but not runtime-validated**. The
-fresh dependency build progressed after recovering a hash-verified Assimp
-archive; all 27 generated archive pins are now cached and verified, but the full
-dependency build is still incomplete. OpenSSL and CURL passed after a documented
-local `/Z7`/generated-install-rule workaround for OpenSSL's PDB stall. No GUI/slicing,
-live registry/credential behavior, installer operation, or clean-machine test
-has been claimed. Upstream CI evidence predates this product code.
-Six secondary CPython archives also passed complete official Git-tree/content
-verification, and its actual bootstrap script used that cache without downloads.
-The archive provenance record distinguishes those checks from upstream-supplied
-SHA-256 pins. Bundled Python 3.12.13 has now compiled/staged with a scoped `/Z7`
-workaround and passed selected runtime checks; OpenCV passed an installed-library
-probe. The optional offline wx source recipe passed three CMake tests, and its
-recovered source tree/submodules and WebView2 SDK passed provenance verification.
-All 32 dependency targets have completed successfully, including wx and wxInspector.
-The application build has started with GUI/CAD/tests enabled and the documented
-PDB option disabled; it has no completion result yet. The optional uv installer
-is unavailable due to execution DNS.
-
-Existing upstream icons/splash graphics remain until verified Vortek assets
-are available. The normal updater entry point is guarded from requesting upstream installers.
-Provider-directed forced upgrades and browser cloud-login callback behavior
-remain release-review items. There is no automatic configuration/account migration,
-and MSIX remains disabled for the fork. Public release is outside this PR.
-
-The earlier profile-tool correction and build records remain separate commits
-in this branch's ancestry. Review those independently or split them into a
-preceding validation PR after synchronization; do not squash upstream history.
+The earlier profile-tool correction, build changes and product changes remain
+separate commits. Review them independently after normal upstream integration;
+do not squash or bypass the synchronization history.
