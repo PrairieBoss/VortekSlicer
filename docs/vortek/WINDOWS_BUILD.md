@@ -304,3 +304,21 @@ extracted into the new wx build's default
 compiled wx libraries were reused. A clean build must likewise stage this
 verified SDK package or retrieve it normally; the source override alone does
 not supply secondary dependencies.
+
+## Current application build
+
+All dependency targets completed with the final standard dependency command.
+The application build uses the supported option below to avoid the confirmed
+host PDB issue while preserving GUI, CAD and tests:
+
+```powershell
+$env:ORCA_SLICER_CMAKE_ARGS = '-DSLIC3R_MSVC_PDB=OFF'
+.\build_win.bat -s --vs 2022 -j 2 --run-tests -i
+```
+
+This disables compiler PDB generation for this CMake build, not core features.
+The process environment and existing CMake cache must be recorded for a
+reproduction. The optional uv 0.11.21 download failed DNS during configuration;
+upstream allows continuing without it. No alternative uv was substituted.
+Compilation/test/install completion must be checked in the authoritative status
+record rather than inferred from successful dependency builds.

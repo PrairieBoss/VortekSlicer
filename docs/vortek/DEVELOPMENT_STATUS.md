@@ -15,6 +15,7 @@ Last verified: 2026-10-22, America/Regina.
 - Portable path directory check: `5bafb60b9f`.
 - Product diagnostic/support destinations: `3472ffa022`.
 - Bundled-Python project limit: `ce04347a92` (separate build correction).
+- Verified offline wx source support, fixture and CI integration: `6b1fe70131`.
 - Preserved validation branch: `codex/windows-build-validation` at `9714136543`.
 - Earlier profile-tool correction: `dcd5382b5c`; build records: `75f87f5d1e`, `9714136543`.
 - Source synchronization baseline: `04684c58f935fc5beaba4d5959dcd7741c6a22d1`.
@@ -32,7 +33,7 @@ record commits. No development PR has been opened or merged.
 
 | Workstream | Current result | Next useful action |
 | --- | --- | --- |
-| Windows build | All 27 generated archives verified; 30/32 targets complete, including staged Python; exact wx source and pinned WebView2 SDK recovered | Finish wxWidgets and wxInspector |
+| Windows build | All 32 dependency targets passed; product application build started with GUI/CAD/tests enabled | Resolve application compile/test/install results |
 | Branding | Product names, captions, splash version, About credit, Windows metadata implemented | Compile GUI, inspect layout, supply verified Vortek graphics |
 | Configuration isolation | Separate normal/portable/viewer/credential identities; safer Windows associations implemented | Runtime co-installation and account tests against disposable data |
 | Packaging | Distinct NSIS/CPack identity configured for x64/ARM64; unsafe inherited MSIX staging blocked | Build internal NSIS/portable candidate after application validation |
@@ -149,7 +150,8 @@ Probe: `build-validation-logs/openssl-link-probe.log`.
 The resumed dependency build completed OCCT, GLEW, OpenCSG, OpenCV, Blosc,
 OpenEXR, TBB, OpenVDB, PNG, SLVS, libnoise and JPEG. Together with the earlier
 14 targets and the subsequently completed Python, Qhull, GMP and MPFR targets,
-30 of the 32 dependency targets are complete. GMP and MPFR are repository-supplied
+All 32 dependency targets have now completed successfully, including wxWidgets
+and wxInspector. GMP and MPFR are repository-supplied
 Windows binary copy targets, not ExternalProject compilations. Logs:
 `dependencies-resume-20261022.log`, `dependencies-after-python-20261022.log`,
 `qhull-20261022.log`, `gmp-20261022.log`, and `mpfr-20261022.log`.
@@ -178,13 +180,22 @@ Log: `wx-config-tests-20261022.log`. Provenance is in
 
 The first offline configure then required WebView2 SDK 1.0.3485.44. Its archived
 NuGet package matched the exact SHA-256 pinned by wxWidgets and was freshly
-extracted into the new build's expected package directory. The active command
-is `build_win.bat -d -t dep_wxWidgets --vs 2022 -j 2 --no-configure`, using the
-normal environment and the cached source selection from the preceding configure.
-Log: `build-validation-logs/wx-offline-sdk-20261022.log`; exit checkpoint:
-`build-validation-logs/wx-offline-sdk-20261022.exit`. No second heavy build runs
-concurrently. The earlier offline log `wx-offline-20261022.log` records the
-resolved-source/SDK-download boundary, not a successful wx build.
+extracted into the new build's expected package directory. The offline wx target compiled and installed in 3 minutes 21 seconds (exit zero).
+The full dependency command then completed wxInspector and exited zero in
+28 seconds. Logs: `wx-offline-sdk-20261022.log` and
+`dependencies-final-20261022.log`, with matching zero exit checkpoints.
+
+The active command is now `build_win.bat -s --vs 2022 -j 2 --run-tests -i`,
+using the normal environment plus the process-local extra configure option
+`ORCA_SLICER_CMAKE_ARGS=-DSLIC3R_MSVC_PDB=OFF`. This supported option avoids
+requiring compiler PDB service operation; no installed compiler setting changed.
+GUI, CAD and tests remain enabled. Log:
+`build-validation-logs/application-vortek-20261022.log`; exit checkpoint:
+`build-validation-logs/application-vortek-20261022.exit`. No second heavy build
+runs concurrently. Configuration's optional uv 0.11.21 download failed on DNS;
+upstream permits the build to continue without that optional package installer.
+No unverified substitute was provided. Its absence must remain visible in the
+packaging/runtime acceptance record.
 
 Static inspection of the pinned CPython archive found additional bootstrap
 downloads in `PCbuild/get_externals.bat`: bzip2, SQLite, xz, zlib, libffi and
@@ -235,7 +246,7 @@ that executable is not evidence for the synchronized/product branch.
 | Existing profile-tool suite | Earlier validation: 262 passes, one existing upstream skip |
 | Combined script suite after fork changes | 274 run, 273 passed, one existing upstream local-clone skip; 146.812 seconds, exit zero with VS2022 active |
 | Fork identity suite | 12/12 passed with VS2022/Windows SDK active; latest focused run 5.195 seconds, including both new regression cases |
-| Existing Windows CI step | Extracted batch step passed locally with VS2026, 11 identity checks plus the Python build fixture; four package-variable fixtures passed; no GitHub run |
+| Existing Windows CI step | Updated extracted step passed locally with VS2026: 12 identity tests (9.174 s), Python fixture (0.177 s), wx fixtures (8.513 s); four earlier package-variable fixtures passed; no GitHub run |
 | Python build configuration | One test/four environment fixtures passed; actual generated command contains the one-project limit |
 | Python external bootstrap | Six exact official Git trees verified; pinned bootstrap script exited zero using only cached entries |
 | Bundled Python runtime | Python 3.12.13 compiled/staged with scoped `/Z7`; isolated imports, compression and SQLite checks passed |
@@ -248,7 +259,8 @@ that executable is not evidence for the synchronized/product branch.
 | Configuration startup selection | Production selection code with fake wx path provider and real temporary filesystem; normal, fork-portable, upstream-portable and explicit override cases passed |
 | Windows build-script suite | Earlier 192 passes/30 optional LLVM-related failures; not rerun without a relevant change |
 | Source checks | Diff whitespace and changed-file credential-pattern scans passed |
-| Complete product compilation | Not reached |
+| Dependency superbuild | All 32 targets completed; final standard dependency command exited zero |
+| Complete product compilation | Started; no completion result yet |
 | GUI, slicing, preview, G-code, project round trip | Not runtime-validated |
 | Installer and clean-machine deployment | Not built/run |
 
@@ -303,17 +315,18 @@ The exact integration/ongoing maintenance procedure is in
 
 ## Exact continuation and remaining acceptance
 
-1. Check the `wx-offline-sdk-20261022` exit file and log. Do not launch another
-   heavy build while it is running. After wx completes, run the full dependency
-   target to finish wxInspector.
+1. Check the `application-vortek-20261022` exit file and log. Do not launch
+   another heavy build while it is running. All dependency targets have passed.
 2. Apply the shell environment in [WINDOWS_BUILD.md](WINDOWS_BUILD.md), then run
    `build_win.bat -d --vs 2022 -j 2`. Preserve the successful targets and all 27
    hash-verified archives. Scope any `/Z7` workaround to the build process and
    document the exact invocation; do not modify global compiler settings.
    Keep `EXTERNALS_DIR` set to the verified six-entry Python cache on this host.
-3. After all dependencies pass, run
+3. To resume the application build, set
+   `$env:ORCA_SLICER_CMAKE_ARGS='-DSLIC3R_MSVC_PDB=OFF'`, then run
    `build_win.bat -s --vs 2022 -j 2 --run-tests -i`. Record application compilation,
-   tests, translations, and installation separately.
+   tests, translations, and installation separately. The optional uv package
+   installer remains unavailable; do not conflate that with core slicing.
 4. Run the isolated startup/import/slice/preview/export/project/co-installation
    checks in [RELEASE_ACCEPTANCE.md](RELEASE_ACCEPTANCE.md). Verify real config paths and preservation
    of an existing Orca installation using disposable fixtures first.

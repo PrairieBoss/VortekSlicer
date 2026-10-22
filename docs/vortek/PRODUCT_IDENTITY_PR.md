@@ -52,7 +52,10 @@ SHA-256 pins. Bundled Python 3.12.13 has now compiled/staged with a scoped `/Z7`
 workaround and passed selected runtime checks; OpenCV passed an installed-library
 probe. The optional offline wx source recipe passed three CMake tests, and its
 recovered source tree/submodules and WebView2 SDK passed provenance verification.
-The application dependency build remains incomplete until wx and wxInspector finish.
+All 32 dependency targets have completed successfully, including wx and wxInspector.
+The application build has started with GUI/CAD/tests enabled and the documented
+PDB option disabled; it has no completion result yet. The optional uv installer
+is unavailable due to execution DNS.
 
 Existing upstream icons/splash graphics remain until verified Vortek assets
 are available. The normal updater entry point is guarded from requesting upstream installers.

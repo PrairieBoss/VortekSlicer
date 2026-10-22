@@ -6,9 +6,9 @@ work by product value and dependencies.
 
 | Priority | Task | Dependency | Acceptance evidence |
 | --- | --- | --- | --- |
-| 1 | Finish wxWidgets and wxInspector | 30/32 targets completed; exact wx source and pinned SDK recovered; wx compiling | Target exits recorded; preserve successful targets |
+| 1 | Complete active GUI/CAD application build, tests and install | All 32 dependency targets passed; application build running | Application, tests, translations and install exits recorded separately |
 | 2 | Validate application integration with staged Python | Python 3.12.13 built/staged; isolated SSL, ctypes, compression and SQLite checks passed | Application links and uses its bundled runtime successfully |
-| 3 | Compile/install the product branch and run application tests | Complete dependencies | Application, tests, translations, and install results recorded independently |
+| 3 | Recover pinned optional uv package installer | Official archive unavailable through current execution DNS; core build continues | Exact 0.11.21 archive hash matches CMake pin; staging and package operations checked |
 | 4 | Test clean startup and co-installation | Product executable | Orca and Vortek config directories remain distinct; original data unchanged |
 | 5 | Test cube import, transforms, slice, preview, G-code, and project round trip | Working GUI | Saved test project/G-code and documented results, no physical print |
 | 6 | Runtime-test the updater guard; review forced upgrades and cloud callbacks | Product executable; provider integration review | Normal checks offer no upstream installer; login does not seize Orca's protocol |
