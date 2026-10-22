@@ -50,6 +50,8 @@ configuration mode. The viewer's key is separate as well.
 Portable mode recognizes `VortekSlicer-data` beside the executable. The
 upstream generic `data_dir` folder is deliberately ignored, including when a
 user puts a fork executable beside an existing OrcaSlicer portable install.
+A regular file named `VortekSlicer-data` is preserved and ignored as a
+portable directory; startup selects its normal isolated data location.
 An explicit `--datadir` still takes precedence. That is a caller-controlled
 override, not a migration mechanism: it must never point at production
 OrcaSlicer data during testing.

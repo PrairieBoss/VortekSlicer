@@ -220,6 +220,14 @@ int main() {
     config.m_mode = AppConfig::EAppMode::GCodeViewer;
     if (fs::path(config.config_path()) != fs::path(selected) / "VortekSlicerGcodeViewer.conf") return 5;
     const auto portable = executable.parent_path() / "VortekSlicer-data";
+    std::ofstream(portable) << "existing file";
+    selected.clear();
+    app.init_app_config();
+    if (fs::path(selected) != user_root / "VortekSlicer" || !fs::is_regular_file(portable)) return 9;
+    std::string portable_file;
+    std::getline(std::ifstream(portable), portable_file);
+    if (portable_file != "existing file") return 10;
+    fs::remove(portable); // This test-created file is inside the isolated fixture.
     fs::create_directory(portable);
     selected.clear();
     app.init_app_config();

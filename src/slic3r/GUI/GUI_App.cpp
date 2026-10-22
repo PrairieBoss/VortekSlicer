@@ -2569,7 +2569,7 @@ void GUI_App::init_app_config()
         _app_folder = _app_folder.parent_path().parent_path().parent_path();
 #endif
         boost::filesystem::path app_data_dir_path = _app_folder / SLIC3R_PORTABLE_DATA_DIR;
-        if (boost::filesystem::exists(app_data_dir_path)) {
+        if (boost::filesystem::is_directory(app_data_dir_path)) {
             set_data_dir(app_data_dir_path.string());
         }
         else{
