@@ -1,6 +1,6 @@
 # VortekSlicer development status
 
-Last verified: 2026-10-21, America/Regina.
+Last verified: 2026-10-22, America/Regina.
 
 ## Current branches and source
 
@@ -11,6 +11,8 @@ Last verified: 2026-10-21, America/Regina.
 - Configuration selection regression test: `ce09e1d7b9`.
 - Windows artifact/check integration: `b5704f61a3`.
 - Windows CI Python-fixture integration: `a9ab64cc96`.
+- Windows association path-capacity/failure guard: `bf4f8ddd49`.
+- Portable path directory check: `5bafb60b9f`.
 - Product diagnostic/support destinations: `3472ffa022`.
 - Bundled-Python project limit: `ce04347a92` (separate build correction).
 - Preserved validation branch: `codex/windows-build-validation` at `9714136543`.
@@ -30,11 +32,11 @@ record commits. No development PR has been opened or merged.
 
 | Workstream | Current result | Next useful action |
 | --- | --- | --- |
-| Windows build | All 27 generated archive downloads hash-verified; OpenSSL and CURL built/installed; OCCT compiling | Finish remaining dependencies |
+| Windows build | All 27 generated archive downloads hash-verified; 19/32 targets complete, including OCCT/OpenCV/Blosc; OpenEXR compiling | Finish remaining dependencies |
 | Branding | Product names, captions, splash version, About credit, Windows metadata implemented | Compile GUI, inspect layout, supply verified Vortek graphics |
 | Configuration isolation | Separate normal/portable/viewer/credential identities; safer Windows associations implemented | Runtime co-installation and account tests against disposable data |
 | Packaging | Distinct NSIS/CPack identity configured for x64/ARM64; unsafe inherited MSIX staging blocked | Build internal NSIS/portable candidate after application validation |
-| QA | Eleven focused fork tests passed, including native compile/run, filesystem fixtures and resource compilation | Application tests and functional slicing after dependencies finish |
+| QA | Twelve focused fork tests passed, including native compile/run, filesystem fixtures and resource compilation | Application tests and functional slicing after dependencies finish |
 | Maintenance | Architecture, backlog, build procedure and PR draft prepared | Keep records aligned with observed results and open reviewable PRs when authenticated |
 
 The product changes are **implemented but not runtime-validated**. They do not
@@ -61,7 +63,11 @@ Windows association queries handle read errors and non-string values before
 comparing them. Removal checks ownership and uses the proper default view
 selector. Automatic `orcaslicer://` takeover is prevented for the fork.
 The credential service is `VortekSlicer/Auth`; tests access no live credentials.
-URL disassociation also checks ownership before clearing a handler. The normal
+URL disassociation also checks ownership before clearing a handler. File
+association changes now pass executable-path capacity in characters and abort
+on failed/truncated lookup. Portable discovery requires a directory: a regular
+file named `VortekSlicer-data` is preserved and ignored. Both regressions were
+reproduced before their fixes; the native fixtures passed afterward. The normal
 application updater entry point returns before requesting upstream installer
 metadata; a manual check queues an explanatory dialog. Profile update logic
 is unchanged. Provider-directed forced upgrades still require review.
@@ -143,14 +149,18 @@ Probe: `build-validation-logs/openssl-link-probe.log`.
 Active command: `build_win.bat -d --vs 2022 -j 2`, with the normal documented
 environment plus `EXTERNALS_DIR` pointing to the verified Python cache and
 `PYTHON=C:/Python314/python.exe` (no `_CL_` override for other dependencies). Log:
-`build-validation-logs/dependencies-verified-externals.log`; exit checkpoint:
-`build-validation-logs/dependencies-verified-externals.exit`. CURL completed and OCCT
-is compiling at this checkpoint. No second heavy build runs concurrently.
+`build-validation-logs/dependencies-resume-20261022.log`; exit checkpoint:
+`build-validation-logs/dependencies-resume-20261022.exit`. The earlier execution
+ended without a completion result; no old build process was found, and the new
+command resumed from preserved OCCT objects. OCCT, GLEW and OpenCSG completed;
+OpenCV and Blosc also completed; OpenEXR is compiling. No second heavy build
+runs concurrently.
 The prior `dependencies-all-cache.log` command was intentionally interrupted
 to apply that environment; its partial OCCT objects and successful target
 stamps were preserved. A stamp audit before the restart found 14/32 completed
 dependency targets: Assimp, Boost, CGAL, CURL, Cereal, Draco, Expat, Eigen,
-FFmpeg, FreeType, GLFW, NLopt, OpenSSL, and ZLIB.
+FFmpeg, FreeType, GLFW, NLopt, OpenSSL, and ZLIB. The resumed command has since
+added OCCT, GLEW, OpenCSG, OpenCV and Blosc, for 19/32 completed targets.
 
 Static inspection of the pinned CPython archive found additional bootstrap
 downloads in `PCbuild/get_externals.bat`: bzip2, SQLite, xz, zlib, libffi and
@@ -190,7 +200,7 @@ that executable is not evidence for the synchronized/product branch.
 | Existing profile tree | Earlier check: 66 vendors, no errors or warnings; profiles unchanged |
 | Existing profile-tool suite | Earlier validation: 262 passes, one existing upstream skip |
 | Combined script suite after fork changes | 274 run, 273 passed, one existing upstream local-clone skip; 146.812 seconds, exit zero with VS2022 active |
-| Fork identity suite | 11/11 passed with VS2022/Windows SDK active; latest focused run 5.247 seconds |
+| Fork identity suite | 12/12 passed with VS2022/Windows SDK active; latest focused run 5.195 seconds, including both new regression cases |
 | Existing Windows CI step | Extracted batch step passed locally with VS2026, 11 identity checks plus the Python build fixture; four package-variable fixtures passed; no GitHub run |
 | Python build configuration | One test/four environment fixtures passed; actual generated command contains the one-project limit |
 | Python external bootstrap | Six exact official Git trees verified; pinned bootstrap script exited zero using only cached entries |
@@ -205,7 +215,9 @@ that executable is not evidence for the synchronized/product branch.
 | GUI, slicing, preview, G-code, project round trip | Not runtime-validated |
 | Installer and clean-machine deployment | Not built/run |
 
-Fork logs: `build-validation-logs/product-identity-tests.log` and
+Fork logs: `build-validation-logs/product-identity-portable-20261022.log`,
+`build-validation-logs/association-path-before.log`,
+`build-validation-logs/portable-file-before.log`, and
 `build-validation-logs/script-tests-product.log` (combined discovery). These focused
 checks are separate from app compilation, live registry/credential behavior,
 visual QA, and physical printer validation. No physical printer was operated.
@@ -216,11 +228,22 @@ unit tests. Its Windows portable/installer/MSIX artifacts exist, but predate
 all product changes and could not be materialized for local smoke tests.
 They must not be presented as validation of this branch.
 
+## Graphics availability
+
+The existing `Variations of Vortek logo design.png` candidate was located, but
+the current authenticated file-download helper failed DNS resolution before
+materialization. Its artwork has not been inspected or selected for production.
+The public `.ca` website lookup also failed DNS resolution; no alternate asset
+was recovered. No asset was replaced or invented. Graphics remain an independent pending task;
+this does not block compilation or text/configuration work.
+
 ## GitHub and pending reviews
 
-[PR #2](https://github.com/PrairieBoss/VortekSlicer/pull/2) was last verified
-open/draft, mergeable at the expected sync head, with four successful returned
-workflows. The connected integration rejected marking it ready as inaccessible
+[PR #2](https://github.com/PrairieBoss/VortekSlicer/pull/2) was rechecked on
+2026-10-22: open/draft, unmerged, mergeable at the expected sync head/base.
+The earlier check returned four successful workflows; none validates product
+code. Repository read access remains available. No new write was attempted
+without evidence of a changed authenticated write connection. The connected integration rejected marking it ready as inaccessible
 by integration. CLI authentication was rechecked and its token remains invalid;
 no repeated write attempt was made without a changed authentication state.
 

@@ -138,7 +138,7 @@ cmd.exe /d /c 'call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\
 ```
 
 Use the writable temporary-directory settings above. This suite passed all
-eleven tests, including native compile/run, configuration filesystem fixtures
+twelve tests, including native compile/run, configuration filesystem fixtures
 and resource compilation. If no
 developer environment is active, native probes are explicitly skipped; do not
 count that as full native coverage. The suite never writes live associations,
@@ -154,7 +154,9 @@ The later Python project-limit correction has its own four-case CMake fixture:
 python -m unittest discover -s scripts/tests -p test_python_build_config.py -v
 ```
 
-It passed separately; the 274-test combined run predates this additional test.
+It passed separately. The recorded 274-test combined run predates this test
+and the executable-path regression test; the current twelve-test native
+identity suite passed independently after both path-safety fixes.
 
 ## Downloads and local outputs
 

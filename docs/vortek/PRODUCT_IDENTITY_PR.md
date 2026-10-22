@@ -12,22 +12,25 @@ launcher/DLL names, profiles, translation catalogs, and attribution.
 The fork now supplies its name and vendor to generated resources and GUI
 captions. Normal and portable configuration, model-file ProgIDs, credential
 storage, and package upgrade identities are separated from OrcaSlicer.
-Removing an association checks its current owner; automatic upstream URL
+Association changes also stop when executable-path lookup fails or truncates,
+and portable discovery preserves a same-named regular file. Removing an
+association checks its current owner; automatic upstream URL
 protocol takeover is prevented. The existing MSIX script fails before staging
 a fork under OrcaSlicer's publisher/Store identity.
 Diagnostic/support links and archive names identify the fork. Existing Windows
 CI uses product-aware installer/artifact names, skips upstream-only MSIX, and
 runs the focused native tests in its build-script check job.
 
-Validation: eleven focused tests pass with VS2022 and Windows SDK active. They
+Validation: twelve focused tests pass with VS2022 and Windows SDK active. They
 include generated identity/resource checks, C++ compile/run probes, mocked
 registry ownership/error cases, Windows resource compilation, x64/ARM64 CPack
 configuration, the MSIX early-failure staging-preservation check, and actual
 startup/config-file selection code with isolated filesystem fixtures.
 `git diff --check` passes.
-The extracted CI batch step passed locally with the installed VS2026 toolchain;
-its latest version ran the eleven identity checks and the Python build fixture.
-its PowerShell package-variable step passed four product/architecture fixtures.
+The earlier extracted CI batch step passed locally with the installed VS2026
+toolchain: eleven identity checks and the Python build fixture. The current
+twelve-test identity suite passed with VS2022 after the later path-safety fixes.
+The PowerShell package-variable step passed four product/architecture fixtures.
 No GitHub workflow run has validated these changes yet.
 The combined script suite ran 274 tests with VS2022 active: 273 passed and
 one existing developer-local Bambu clone test was skipped (146.812 seconds).
