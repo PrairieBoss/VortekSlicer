@@ -43,6 +43,23 @@ architecture, input files and output hashes with every candidate.
 - Test NSIS install/upgrade/uninstall in the disposable environment. Removing
   Vortek must leave Orca's installation, associations and user data intact.
 
+## Automated Windows CLI acceptance
+
+With the current product executable and resources built, run:
+
+```powershell
+C:\Vortek_Manufacturing\Tools\CMake\bin\ctest.exe --test-dir build/tests -C Release -L RequiresApp --output-on-failure
+```
+
+The `cli_roundtrip` check uses the shipped P1S/PLA/0.20 mm Standard presets and
+repository cube. It checks captured help identity, slicing, nonempty extrusion
+and temperature commands, 3MF geometry/settings and re-slicing consistency.
+Each invocation uses fresh `--datadir` directories below the test build tree;
+logs and a summary containing input/executable/DLL/output hashes remain there.
+The test never sends G-code to a printer. A missing binary is reported as
+skipped (77), which is not functional validation. This check does not replace
+GUI preview, transforms, co-installation, packaging or clean-machine acceptance.
+
 ## Core functional workflow
 
 - Use a repository test cube and an existing supported upstream printer profile

@@ -85,9 +85,10 @@ add_subdirectory(fff_print)
 add_subdirectory(sla_print)
 add_subdirectory(filament_group)
 
-# End-to-end checks of the orca-slicer binary. Linux only: they read result.json, which the CLI
-# writes on Linux only. src/ is added before tests/, so the target is known here.
-if (UNIX AND NOT APPLE AND TARGET OrcaSlicer)
+# End-to-end checks of the built application. Windows uses the Python-only
+# round-trip smoke test; Linux also checks its platform-specific result.json.
+# src/ is added before tests/, so the application target is known here.
+if (TARGET OrcaSlicer AND (WIN32 OR (UNIX AND NOT APPLE)))
     add_subdirectory(cli)
 endif ()
 
