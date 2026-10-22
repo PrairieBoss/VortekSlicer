@@ -30,6 +30,9 @@ its PowerShell package-variable step passed four product/architecture fixtures.
 No GitHub workflow run has validated these changes yet.
 The combined script suite ran 274 tests with VS2022 active: 273 passed and
 one existing developer-local Bambu clone test was skipped (146.812 seconds).
+An isolated later Windows build correction propagates an explicit CMake project
+limit to bundled Python's nested MSBuild. Its separate four-case configuration
+test passed. Keep that build fix independently reviewable from branding.
 
 The product identity changes are **implemented but not runtime-validated**. The
 fresh dependency build progressed after recovering a hash-verified Assimp
@@ -38,6 +41,10 @@ dependency build is still incomplete. OpenSSL and CURL passed after a documented
 local `/Z7`/generated-install-rule workaround for OpenSSL's PDB stall. No GUI/slicing,
 live registry/credential behavior, installer operation, or clean-machine test
 has been claimed. Upstream CI evidence predates this product code.
+Six secondary CPython archives also passed complete official Git-tree/content
+verification, and its actual bootstrap script used that cache without downloads.
+The archive provenance record distinguishes those checks from upstream-supplied
+SHA-256 pins; bundled Python itself has not yet compiled in the active build.
 
 Existing upstream icons/splash graphics remain until verified Vortek assets
 are available. The normal updater entry point is guarded from requesting upstream installers.

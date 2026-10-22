@@ -1,0 +1,68 @@
+{
+  "verified_date_utc": "2026-10-22",
+  "python_source": "Python-3.12.13.tar.xz",
+  "python_source_sha256": "c08bc65a81971c1dd5783182826503369466c7e67374d1646519adf05207b684",
+  "verification": "Version tags from pinned CPython PCbuild/get_externals.bat resolved through the official python GitHub repositories. All ZIP file contents matched official Git blob hashes and reconstructed complete Git tree hashes. Archive SHA-256 values were recorded after that content verification; CPython provides no archive SHA-256 pins for these secondary downloads.",
+  "externals": [
+    {
+      "repo": "cpython-source-deps",
+      "tag": "bzip2-1.0.8",
+      "commit": "05301997b2f9590f49c672cf3dfd3d3dfa7ad521",
+      "tree": "933e65e88f0a28f9bcbc8abe5a4c12e3f618c043",
+      "url": "https://github.com/python/cpython-source-deps/archive/05301997b2f9590f49c672cf3dfd3d3dfa7ad521.zip",
+      "archive_sha256": "44b15bede52b32f8673a2976621a847258b041243c003e30f4d9a05214785fe5",
+      "file_count": 56,
+      "verified_git_tree": "933e65e88f0a28f9bcbc8abe5a4c12e3f618c043"
+    },
+    {
+      "repo": "cpython-bin-deps",
+      "tag": "libffi-3.4.4",
+      "commit": "94cb9a1c7feb608adf2b9f8fe2dbd6925ffbf90d",
+      "tree": "bf8087b61bea675a2d4ab393e25e017a9eea9734",
+      "url": "https://github.com/python/cpython-bin-deps/archive/94cb9a1c7feb608adf2b9f8fe2dbd6925ffbf90d.zip",
+      "archive_sha256": "6b0f53490e0dd958708bff32df689cf2163c214147fcb8edb76a403fa6a877ca",
+      "file_count": 17,
+      "verified_git_tree": "bf8087b61bea675a2d4ab393e25e017a9eea9734"
+    },
+    {
+      "repo": "cpython-bin-deps",
+      "tag": "openssl-bin-3.0.16.2",
+      "commit": "1174fd43d858425c345b16d631716fb98ba492ea",
+      "tree": "6bb16a4a166dbbe80cf3c9b233abe8a7b272e4ab",
+      "url": "https://github.com/python/cpython-bin-deps/archive/1174fd43d858425c345b16d631716fb98ba492ea.zip",
+      "archive_sha256": "b741fd1411a36cb899fee2c39b70a4492f4bc1c6e2301d67df32e9754118a63b",
+      "file_count": 511,
+      "verified_git_tree": "6bb16a4a166dbbe80cf3c9b233abe8a7b272e4ab"
+    },
+    {
+      "repo": "cpython-source-deps",
+      "tag": "sqlite-3.49.1.0",
+      "commit": "cb7a3997059739fe9c63b2819aeda7c6907510ef",
+      "tree": "8332b813a0d2048c4c35cc3396fe5f4cf772fe6e",
+      "url": "https://github.com/python/cpython-source-deps/archive/cb7a3997059739fe9c63b2819aeda7c6907510ef.zip",
+      "archive_sha256": "586fe469463f5b27b749f9eef1938baa8e8a12030341e96160a371356c2d6759",
+      "file_count": 5,
+      "verified_git_tree": "8332b813a0d2048c4c35cc3396fe5f4cf772fe6e"
+    },
+    {
+      "repo": "cpython-source-deps",
+      "tag": "xz-5.2.5",
+      "commit": "c6bc0c612605622aaef101a33a751f9de2ecc193",
+      "tree": "2b8fb6a3c0b111c2175bec896b2a22448fd0ac4b",
+      "url": "https://github.com/python/cpython-source-deps/archive/c6bc0c612605622aaef101a33a751f9de2ecc193.zip",
+      "archive_sha256": "d99882a8f9fd48be0e605e27e3c077e5eaab370f6f52ebcc8ff754480ffdf0bc",
+      "file_count": 480,
+      "verified_git_tree": "2b8fb6a3c0b111c2175bec896b2a22448fd0ac4b"
+    },
+    {
+      "repo": "cpython-source-deps",
+      "tag": "zlib-1.3.1",
+      "commit": "4dc98e1909830e2bdc2a9cc2236e3c5d5037335b",
+      "tree": "7a0132f74b8152a3c8cab5cdaaac42234181d5b5",
+      "url": "https://github.com/python/cpython-source-deps/archive/4dc98e1909830e2bdc2a9cc2236e3c5d5037335b.zip",
+      "archive_sha256": "39d867c083ebc37c77cf03a442f87c0f83db006eb64343bd4a19f1c84c26f50c",
+      "file_count": 253,
+      "verified_git_tree": "7a0132f74b8152a3c8cab5cdaaac42234181d5b5"
+    }
+  ]
+}

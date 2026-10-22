@@ -46,6 +46,11 @@ $env:LC_ALL = 'C'
 $env:LC_CTYPE = 'C'
 $env:LANG = 'C'
 
+# This host's six-entry, independently Git-tree-verified CPython cache.
+# See DEPENDENCY_CACHE_PROVENANCE.json; a clean checkout may fetch normally.
+$env:EXTERNALS_DIR = Join-Path (Get-Location) 'deps\DL_CACHE\python3\externals'
+$env:PYTHON = 'C:\Python314\python.exe'
+
 .\build_win.bat -d --vs 2022 -j 2
 if ($LASTEXITCODE -ne 0) { throw 'Dependency build failed; inspect its first error.' }
 ```
@@ -55,6 +60,12 @@ The single-project setting limits nested MSBuild projects. The batch script's
 with `CMAKE_BUILD_PARALLEL_LEVEL=2` stalled at MSBuild's system-check stage;
 the serial-project retry progressed. The exact cause of that stall was not
 established. Do not run multiple heavy builds concurrently.
+The bundled-Python recipe now propagates a positive explicit
+`CMAKE_BUILD_PARALLEL_LEVEL=N` to PCbuild as `-M /m:N`; PCbuild would otherwise
+start an unbounded nested MSBuild. Reconfigure if changing this limit, because
+the external build command captures it at CMake configuration time. Empty or
+unset values retain upstream's default behavior. Four configuration fixtures
+passed and the actual generated command was checked with the one-project limit.
 
 Only after **all** dependencies complete, run the application build and tests:
 
@@ -84,6 +95,14 @@ upstream-pinned SHA-256, and resumed this same procedure. Assimp, Boost, Eigen,
 CGAL, Cereal, Draco, and Expat completed. FFmpeg, Python, Qhull, SolveSpaceLib, and wxInspector archives were subsequently
 recovered and verified as well. All 27 generated archive pins pass a cache audit.
 Retain successful build stamps; third-party bootstrap downloads are separate.
+Six CPython bootstrap archives were then recovered at the exact official
+commits behind its requested version tags. Their 1,322 file blobs and complete
+Git trees matched the official repositories before use; the resulting archive
+SHA-256 hashes and provenance are saved in
+[DEPENDENCY_CACHE_PROVENANCE.json](DEPENDENCY_CACHE_PROVENANCE.json).
+CPython did not supply archive checksum pins for these secondary downloads.
+Its actual `get_externals.bat --no-tkinter` passed against the cache without
+downloading. This does not establish a compiled Python runtime.
 
 ## Checks available before the full application build
 
@@ -129,6 +148,13 @@ The combined `unittest discover -s scripts/tests -t scripts` run after these
 changes completed 274 tests with VS2022 active: 273 passed and the existing
 developer-local Bambu clone case was skipped (146.812 seconds). See
 `build-validation-logs/script-tests-product.log` and its zero exit checkpoint.
+The later Python project-limit correction has its own four-case CMake fixture:
+
+```powershell
+python -m unittest discover -s scripts/tests -p test_python_build_config.py -v
+```
+
+It passed separately; the 274-test combined run predates this additional test.
 
 ## Downloads and local outputs
 

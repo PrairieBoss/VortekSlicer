@@ -11,6 +11,7 @@ Last verified: 2026-10-21, America/Regina.
 - Configuration selection regression test: `ce09e1d7b9`.
 - Windows artifact/check integration: `b5704f61a3`.
 - Product diagnostic/support destinations: `3472ffa022`.
+- Bundled-Python project limit: `ce04347a92` (separate build correction).
 - Preserved validation branch: `codex/windows-build-validation` at `9714136543`.
 - Earlier profile-tool correction: `dcd5382b5c`; build records: `75f87f5d1e`, `9714136543`.
 - Source synchronization baseline: `04684c58f935fc5beaba4d5959dcd7741c6a22d1`.
@@ -138,17 +139,38 @@ the complete upstream OpenSSL test suite or a live TLS/network test.
 Probe: `build-validation-logs/openssl-link-probe.log`.
 
 Active command: `build_win.bat -d --vs 2022 -j 2`, with the normal documented
-environment (no `_CL_` override for other dependencies). Log:
-`build-validation-logs/dependencies-all-cache.log`; exit checkpoint:
-`build-validation-logs/dependencies-all-cache.exit`. CURL completed and OCCT
+environment plus `EXTERNALS_DIR` pointing to the verified Python cache and
+`PYTHON=C:/Python314/python.exe` (no `_CL_` override for other dependencies). Log:
+`build-validation-logs/dependencies-verified-externals.log`; exit checkpoint:
+`build-validation-logs/dependencies-verified-externals.exit`. CURL completed and OCCT
 is compiling at this checkpoint. No second heavy build runs concurrently.
+The prior `dependencies-all-cache.log` command was intentionally interrupted
+to apply that environment; its partial OCCT objects and successful target
+stamps were preserved. A stamp audit before the restart found 14/32 completed
+dependency targets: Assimp, Boost, CGAL, CURL, Cereal, Draco, Expat, Eigen,
+FFmpeg, FreeType, GLFW, NLopt, OpenSSL, and ZLIB.
 
 Static inspection of the pinned CPython archive found additional bootstrap
 downloads in `PCbuild/get_externals.bat`: bzip2, SQLite, xz, zlib, libffi and
 OpenSSL binaries. They use version tags via `get_external.py` and provide no
 archive SHA-256 pins there. They are not covered by the 27-archive CMake audit.
-Review source provenance/checksums before recovering these through an alternate
-route; do not silently seed unverified archives or disable required modules.
+All six were recovered from the official `python/cpython-source-deps` and
+`python/cpython-bin-deps` repositories at the exact commits resolved from those
+tags. Every file matched the official Git blob hash, and the complete trees
+reconstructed to the official Git tree hashes (1,322 files total). Archive
+SHA-256 hashes were recorded after that verification in
+[DEPENDENCY_CACHE_PROVENANCE.json](DEPENDENCY_CACHE_PROVENANCE.json); they are
+not presented as upstream-provided archive checksums. ZIPs and extracted trees
+remain under `deps/DL_CACHE/python3/externals/`.
+
+The actual pinned `PCbuild/get_externals.bat --no-tkinter` then exited zero using
+all six cached entries with no downloads. Log:
+`build-validation-logs/python-externals-offline.log`. This is bootstrap validation,
+not a compiled Python runtime. The recipe now passes `-M /m:N` when a positive
+`CMAKE_BUILD_PARALLEL_LEVEL=N` is explicitly set, preventing CPython's default
+unbounded `/m` from overriding the outer project's limit. A CMake fixture
+passed unset/empty/one/two-job cases; the reconfigured real project contains
+`--no-tkinter -M /m:1`. No required SSL or ctypes module was disabled.
 
 The ignored historical trees `build-archive-20261021/` and
 `deps/build-archive-20261021/` remain intact, as does the download cache.
@@ -168,6 +190,8 @@ that executable is not evidence for the synchronized/product branch.
 | Combined script suite after fork changes | 274 run, 273 passed, one existing upstream local-clone skip; 146.812 seconds, exit zero with VS2022 active |
 | Fork identity suite | 11/11 passed with VS2022/Windows SDK active; latest focused run 5.247 seconds |
 | Existing Windows CI step | Extracted batch step passed locally with VS2026, 11/11; four package-variable fixtures passed; no GitHub run |
+| Python build configuration | One test/four environment fixtures passed; actual generated command contains the one-project limit |
+| Python external bootstrap | Six exact official Git trees verified; pinned bootstrap script exited zero using only cached entries |
 | Native probes | Generated identity compiled and ran; real association helper/query compiled against fake Win32 APIs |
 | Windows resources | Actual generated `.rc` compiled with Windows SDK `rc.exe` |
 | Package configuration | Actual CPack config generated for x64 and ARM64; separate identities and preserved license reference verified |
@@ -223,6 +247,7 @@ The exact integration/ongoing maintenance procedure is in
    `build_win.bat -d --vs 2022 -j 2`. Preserve the successful targets and all 27
    hash-verified archives. Scope any `/Z7` workaround to the build process and
    document the exact invocation; do not modify global compiler settings.
+   Keep `EXTERNALS_DIR` set to the verified six-entry Python cache on this host.
 3. After all dependencies pass, run
    `build_win.bat -s --vs 2022 -j 2 --run-tests -i`. Record application compilation,
    tests, translations, and installation separately.

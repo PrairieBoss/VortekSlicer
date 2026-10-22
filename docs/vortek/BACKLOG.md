@@ -7,7 +7,7 @@ work by product value and dependencies.
 | Priority | Task | Dependency | Acceptance evidence |
 | --- | --- | --- | --- |
 | 1 | Finish the active dependency build, starting with OCCT | OpenSSL/CURL passed; no concurrent heavy build | Target exits recorded; preserve successful stamps |
-| 2 | Verify/recover CPython's secondary bootstrap dependencies when reached | Pinned CPython script uses tags without archive hashes; official provenance required | Required modules preserved; downloaded content checked independently; no insecure substitutions |
+| 2 | Build and validate bundled Python when its target is reached | Six external trees verified; offline bootstrap passed; explicit project limit fixed | Python 3.12.13 stages correctly with required modules; native integration tests pass |
 | 3 | Compile/install the product branch and run application tests | Complete dependencies | Application, tests, translations, and install results recorded independently |
 | 4 | Test clean startup and co-installation | Product executable | Orca and Vortek config directories remain distinct; original data unchanged |
 | 5 | Test cube import, transforms, slice, preview, G-code, and project round trip | Working GUI | Saved test project/G-code and documented results, no physical print |
