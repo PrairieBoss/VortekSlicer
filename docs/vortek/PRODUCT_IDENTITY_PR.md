@@ -26,6 +26,7 @@ configuration, the MSIX early-failure staging-preservation check, and actual
 startup/config-file selection code with isolated filesystem fixtures.
 `git diff --check` passes.
 The extracted CI batch step passed locally with the installed VS2026 toolchain;
+its latest version ran the eleven identity checks and the Python build fixture.
 its PowerShell package-variable step passed four product/architecture fixtures.
 No GitHub workflow run has validated these changes yet.
 The combined script suite ran 274 tests with VS2022 active: 273 passed and

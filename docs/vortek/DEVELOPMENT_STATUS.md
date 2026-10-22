@@ -10,6 +10,7 @@ Last verified: 2026-10-21, America/Regina.
 - Application updater guard: `393bc00b1896047906569833dcbf00433ce91962`.
 - Configuration selection regression test: `ce09e1d7b9`.
 - Windows artifact/check integration: `b5704f61a3`.
+- Windows CI Python-fixture integration: `a9ab64cc96`.
 - Product diagnostic/support destinations: `3472ffa022`.
 - Bundled-Python project limit: `ce04347a92` (separate build correction).
 - Preserved validation branch: `codex/windows-build-validation` at `9714136543`.
@@ -73,7 +74,8 @@ The existing Windows workflow now uses product-aware artifact names/installer
 paths, skips upstream-only MSIX packaging for the fork, and runs the focused
 native suite in its build-script check job. These workflow changes were not
 executed on GitHub. Its extracted batch step passed locally using the existing
-VS2026 installation (11/11, 6.808 seconds); this did not change the VS2022
+VS2026 installation (11/11, latest run 5.963 seconds, plus the Python build
+fixture in 0.204 seconds); this did not change the VS2022
 application build. The PowerShell variable step passed local product/architecture
 fixtures for Vortek/Orca names and x64/ARM64. No toolchain was installed.
 
@@ -189,7 +191,7 @@ that executable is not evidence for the synchronized/product branch.
 | Existing profile-tool suite | Earlier validation: 262 passes, one existing upstream skip |
 | Combined script suite after fork changes | 274 run, 273 passed, one existing upstream local-clone skip; 146.812 seconds, exit zero with VS2022 active |
 | Fork identity suite | 11/11 passed with VS2022/Windows SDK active; latest focused run 5.247 seconds |
-| Existing Windows CI step | Extracted batch step passed locally with VS2026, 11/11; four package-variable fixtures passed; no GitHub run |
+| Existing Windows CI step | Extracted batch step passed locally with VS2026, 11 identity checks plus the Python build fixture; four package-variable fixtures passed; no GitHub run |
 | Python build configuration | One test/four environment fixtures passed; actual generated command contains the one-project limit |
 | Python external bootstrap | Six exact official Git trees verified; pinned bootstrap script exited zero using only cached entries |
 | Native probes | Generated identity compiled and ran; real association helper/query compiled against fake Win32 APIs |

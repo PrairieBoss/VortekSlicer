@@ -122,7 +122,8 @@ paths from `version.inc`. Internal install staging remains `OrcaSlicer`.
 MSIX build/upload steps run only for the upstream repository/product identity;
 fork builds can produce NSIS/portable artifacts without invoking that route.
 The Windows build-script check job also runs the focused native identity suite,
-and its path filters include the fork package module and identity test file.
+and the Python dependency configuration fixture. Its path filters include the
+fork package module and both test files.
 
 ## Verification boundary
 
