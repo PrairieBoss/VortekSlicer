@@ -19,6 +19,7 @@ on:
      - 'build_win.bat'
      - 'scripts/test_build_win.ps1'
      - 'scripts/tests/test_product_identity.py'
+     - 'scripts/tests/test_python_build_config.py'
      - 'scripts/build_preset_cache.*'
      - 'scripts/flatpak/**'
      - 'scripts/msix/**'
@@ -41,6 +42,7 @@ on:
      - 'build_win.bat'
      - 'scripts/test_build_win.ps1'
      - 'scripts/tests/test_product_identity.py'
+     - 'scripts/tests/test_python_build_config.py'
      - 'build_release_macos.sh'
      - 'scripts/build_preset_cache.*'
      - 'scripts/flatpak/**'
@@ -88,6 +90,8 @@ jobs:
           call "%IDENTITY_VS%\VC\Auxiliary\Build\vcvars64.bat"
           if errorlevel 1 exit /b 1
           python -m unittest discover -s scripts/tests -p test_product_identity.py -v
+          if errorlevel 1 exit /b 1
+          python -m unittest discover -s scripts/tests -p test_python_build_config.py -v
 
   build_linux:
     strategy:
