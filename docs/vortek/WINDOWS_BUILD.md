@@ -127,4 +127,6 @@ older application build. They were retained rather than recursively deleted;
 the archived executable is not evidence for this synchronized revision.
 
 See [development status](DEVELOPMENT_STATUS.md) for the current blockers and
-the ordered continuation steps.
+the ordered continuation steps. That record also identifies the pinned CI
+Windows packages and successful remote unit-test job. Artifact transfer into
+the local workspace failed, so those packages have not been smoke-tested here.

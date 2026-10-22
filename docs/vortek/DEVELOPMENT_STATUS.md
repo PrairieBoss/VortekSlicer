@@ -36,7 +36,7 @@ performed, and `main` was not bypassed or updated directly.
 draft at `24efa9b85ef206cd659df8ba317f4f969d7cdc59`. Preserve it as historical
 documentation; do not merge its obsolete build instructions unchanged.
 No new PR has been opened in this session. A push of the validation branch
-was attempted and failed with `getaddrinfo() thread failed to start`; both
+was attempted and failed with `getaddrinfo() thread failed to start`; the
 milestone commits remain local until network and authentication are restored.
 
 The previous ignored build trees, approximately 12.96 GiB and 9.62 GiB,
@@ -57,6 +57,8 @@ These archives remain a deferred cleanup item, not reclaimed disk space.
 | Profile tree check | 66 vendors; 0 files with errors; 0 files with warnings |
 | Profile tool unit tests | Passed after fix: 263 run, 262 passed, 1 existing upstream skip, no failures |
 | Windows build-script suite | 192 passed, 30 failed; optional clang-cl/standalone LLVM unavailable |
+| Pinned baseline CI | Windows build-script tests and Windows x64 application unit-test job passed |
+| Pinned baseline CI packaging | Windows x64 portable, installer, and MSIX artifacts exist; not run locally |
 | Application compilation | Not reached on synchronized source |
 | Application unit tests | Not built or run |
 | Startup, GUI, import, slicing, preview, G-code, project round trip | Not validated on synchronized source |
@@ -74,6 +76,27 @@ Local evidence lives in ignored `build-validation-logs/`: dependency logs,
 ZLIB logs, profile check, profile unit tests, and build-script suite output.
 The full dependency attempt was interrupted after confirming the missing
 archive and DNS failure; it must not be counted as a successful build.
+
+### Remote CI evidence
+
+[Build all run 36739271100](https://github.com/PrairieBoss/VortekSlicer/actions/runs/36739271100)
+belongs to sync head `04684c58f935fc5beaba4d5959dcd7741c6a22d1`.
+Its returned job metadata reports success for Windows build-script tests and
+Windows x64 application unit tests. Its Windows build steps include successful
+application compilation, system preset cache generation, installer creation,
+portable packaging, and MSIX packaging. This is remote baseline evidence,
+not a local reproduction or validation of the later diagnostic fix.
+
+The nonexpired x64 portable artifact is
+`OrcaSlicer_Windows_PR2_x64_portable`, artifact ID `11115708140`, size
+251052784 bytes, SHA-256 digest
+`66b23e89da215ef6f47b88e080436192ef841306c33947846dc9c827dd024e08`.
+Retrieval through the connected GitHub service returned a file reference, but
+materialization into this workspace failed with `download failed`. No local
+portable archive or application was obtained, and no executable from this CI
+run was launched. If artifact transfer becomes available before a local build
+can finish, use this exact artifact for additional baseline smoke tests,
+verify its digest, and keep its results separate from local build evidence.
 
 ## Active blockers and required intervention
 
