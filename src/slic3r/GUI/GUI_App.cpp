@@ -6109,6 +6109,18 @@ void maybe_attach_updater_signature(Http& http, const std::string& canonical_que
 
 void GUI_App::check_new_version_sf(bool show_tips, int by_user)
 {
+    // The upstream response contains OrcaSlicer installer links, not fork builds.
+    if (std::string(SLIC3R_APP_KEY) != "OrcaSlicer") {
+        if (show_tips) {
+            CallAfter([this] {
+                MessageDialog dialog(mainframe,
+                    SLIC3R_APP_NAME " updates are provided by " SLIC3R_APP_VENDOR ". Automatic update checks are not available in this build.",
+                    SLIC3R_APP_NAME, wxOK);
+                dialog.ShowModal();
+            });
+        }
+        return;
+    }
     AppConfig* app_config = wxGetApp().app_config;
     bool       check_stable_only = app_config->get_bool("check_stable_update_only");
     auto version_check_url = app_config->version_check_url();

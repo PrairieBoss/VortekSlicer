@@ -263,6 +263,46 @@ int main() {
 }
 ''')
 
+    @unittest.skipUnless(shutil.which("cl"), "MSVC developer environment not active")
+    def test_fork_update_checks_do_not_request_upstream_installers(self):
+        # Exercise the production entry guard, with the downstream network
+        # operation represented by a counter and UI work queued on a fake app.
+        source = (ROOT / "src/slic3r/GUI/GUI_App.cpp").read_text(encoding="utf-8")
+        begin = source.index("void GUI_App::check_new_version_sf(")
+        end = source.index("    AppConfig* app_config", begin)
+        guard = source[begin:end]
+        self.compile_and_run("update_guard", r'''
+#include "libslic3r_version.h"
+#include <functional>
+#include <string>
+#include <vector>
+static unsigned network_requests = 0, dialogs = 0;
+constexpr int wxOK = 1;
+struct MessageDialog {
+    MessageDialog(int*, const char*, const char*, int) { ++dialogs; }
+    void ShowModal() {}
+};
+struct GUI_App {
+    int* mainframe = nullptr;
+    std::vector<std::function<void()>> queued;
+    void CallAfter(std::function<void()> callback) { queued.push_back(callback); }
+    void check_new_version_sf(bool show_tips, int by_user);
+};
+''' + guard + r'''
+    ++network_requests;
+}
+int main() {
+    GUI_App app;
+    app.check_new_version_sf(false, 0);
+    if (network_requests != 0 || !app.queued.empty() || dialogs != 0) return 1;
+    app.check_new_version_sf(true, 1);
+    if (network_requests != 0 || app.queued.size() != 1 || dialogs != 0) return 2;
+    app.queued.front()();
+    if (dialogs != 1) return 3;
+    return 0;
+}
+''')
+
 
 if __name__ == "__main__":
     unittest.main()
