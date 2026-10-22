@@ -48,7 +48,11 @@ has been claimed. Upstream CI evidence predates this product code.
 Six secondary CPython archives also passed complete official Git-tree/content
 verification, and its actual bootstrap script used that cache without downloads.
 The archive provenance record distinguishes those checks from upstream-supplied
-SHA-256 pins; bundled Python itself has not yet compiled in the active build.
+SHA-256 pins. Bundled Python 3.12.13 has now compiled/staged with a scoped `/Z7`
+workaround and passed selected runtime checks; OpenCV passed an installed-library
+probe. The optional offline wx source recipe passed three CMake tests, and its
+recovered source tree/submodules and WebView2 SDK passed provenance verification.
+The application dependency build remains incomplete until wx and wxInspector finish.
 
 Existing upstream icons/splash graphics remain until verified Vortek assets
 are available. The normal updater entry point is guarded from requesting upstream installers.

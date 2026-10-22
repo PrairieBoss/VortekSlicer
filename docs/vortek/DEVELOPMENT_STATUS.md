@@ -32,7 +32,7 @@ record commits. No development PR has been opened or merged.
 
 | Workstream | Current result | Next useful action |
 | --- | --- | --- |
-| Windows build | All 27 generated archive downloads hash-verified; 19/32 targets complete, including OCCT/OpenCV/Blosc; OpenEXR compiling | Finish remaining dependencies |
+| Windows build | All 27 generated archives verified; 30/32 targets complete, including staged Python; exact wx source and pinned WebView2 SDK recovered | Finish wxWidgets and wxInspector |
 | Branding | Product names, captions, splash version, About credit, Windows metadata implemented | Compile GUI, inspect layout, supply verified Vortek graphics |
 | Configuration isolation | Separate normal/portable/viewer/credential identities; safer Windows associations implemented | Runtime co-installation and account tests against disposable data |
 | Packaging | Distinct NSIS/CPack identity configured for x64/ARM64; unsafe inherited MSIX staging blocked | Build internal NSIS/portable candidate after application validation |
@@ -146,21 +146,45 @@ the SHA-256 of `abc`, and created/freed a TLS context (exit zero). This is not
 the complete upstream OpenSSL test suite or a live TLS/network test.
 Probe: `build-validation-logs/openssl-link-probe.log`.
 
-Active command: `build_win.bat -d --vs 2022 -j 2`, with the normal documented
-environment plus `EXTERNALS_DIR` pointing to the verified Python cache and
-`PYTHON=C:/Python314/python.exe` (no `_CL_` override for other dependencies). Log:
-`build-validation-logs/dependencies-resume-20261022.log`; exit checkpoint:
-`build-validation-logs/dependencies-resume-20261022.exit`. The earlier execution
-ended without a completion result; no old build process was found, and the new
-command resumed from preserved OCCT objects. OCCT, GLEW and OpenCSG completed;
-OpenCV and Blosc also completed; OpenEXR is compiling. No second heavy build
-runs concurrently.
-The prior `dependencies-all-cache.log` command was intentionally interrupted
-to apply that environment; its partial OCCT objects and successful target
-stamps were preserved. A stamp audit before the restart found 14/32 completed
-dependency targets: Assimp, Boost, CGAL, CURL, Cereal, Draco, Expat, Eigen,
-FFmpeg, FreeType, GLFW, NLopt, OpenSSL, and ZLIB. The resumed command has since
-added OCCT, GLEW, OpenCSG, OpenCV and Blosc, for 19/32 completed targets.
+The resumed dependency build completed OCCT, GLEW, OpenCSG, OpenCV, Blosc,
+OpenEXR, TBB, OpenVDB, PNG, SLVS, libnoise and JPEG. Together with the earlier
+14 targets and the subsequently completed Python, Qhull, GMP and MPFR targets,
+30 of the 32 dependency targets are complete. GMP and MPFR are repository-supplied
+Windows binary copy targets, not ExternalProject compilations. Logs:
+`dependencies-resume-20261022.log`, `dependencies-after-python-20261022.log`,
+`qhull-20261022.log`, `gmp-20261022.log`, and `mpfr-20261022.log`.
+The first resumed command was interrupted after Python's C1902 failure; the
+second stopped at wxWidgets' network clone failure. Successful targets and
+partial objects remain preserved.
+
+OpenCV's installed static `opencv_world` library compiled/linked with the same
+contract the application uses. A native probe passed PNG encode/decode equality
+and an image threshold/count check. Logs: `opencv-probe-configure.log`,
+`opencv-probe-build.log`, and `opencv-probe-run.log` (zero exit checkpoint).
+This establishes selected installed-library behavior, not application slicing.
+
+wxWidgets' Git clone was blocked by execution DNS. The required `v3.3.2` name
+is a branch, not a tag; official GitHub data resolved it to commit
+`88f3483ca546fbf4ad732e1acd94cc930935077a`. The preserved checkout was its parent,
+and the only changed file was recovered through the authenticated read connector.
+A fresh export reconstructed the exact official root tree and verified all
+7,406 parent/submodule files against Git blob hashes. No archived generated wx
+libraries were copied. The optional `ORCA_WXWIDGETS_SOURCE_DIR` recipe path now
+accepts a verified source export and removes download/update steps; the normal
+online recipe is preserved. Three CMake tests passed in 5.423 seconds, including
+executing offline download/update targets and rejecting five incomplete inputs.
+Log: `wx-config-tests-20261022.log`. Provenance is in
+`DEPENDENCY_CACHE_PROVENANCE.json`.
+
+The first offline configure then required WebView2 SDK 1.0.3485.44. Its archived
+NuGet package matched the exact SHA-256 pinned by wxWidgets and was freshly
+extracted into the new build's expected package directory. The active command
+is `build_win.bat -d -t dep_wxWidgets --vs 2022 -j 2 --no-configure`, using the
+normal environment and the cached source selection from the preceding configure.
+Log: `build-validation-logs/wx-offline-sdk-20261022.log`; exit checkpoint:
+`build-validation-logs/wx-offline-sdk-20261022.exit`. No second heavy build runs
+concurrently. The earlier offline log `wx-offline-20261022.log` records the
+resolved-source/SDK-download boundary, not a successful wx build.
 
 Static inspection of the pinned CPython archive found additional bootstrap
 downloads in `PCbuild/get_externals.bat`: bzip2, SQLite, xz, zlib, libffi and
@@ -177,12 +201,22 @@ remain under `deps/DL_CACHE/python3/externals/`.
 
 The actual pinned `PCbuild/get_externals.bat --no-tkinter` then exited zero using
 all six cached entries with no downloads. Log:
-`build-validation-logs/python-externals-offline.log`. This is bootstrap validation,
-not a compiled Python runtime. The recipe now passes `-M /m:N` when a positive
+`build-validation-logs/python-externals-offline.log`. This was bootstrap validation.
+The recipe now passes `-M /m:N` when a positive
 `CMAKE_BUILD_PARALLEL_LEVEL=N` is explicitly set, preventing CPython's default
 unbounded `/m` from overriding the outer project's limit. A CMake fixture
 passed unset/empty/one/two-job cases; the reconfigured real project contains
 `--no-tkinter -M /m:1`. No required SSL or ctypes module was disabled.
+
+The normal Python build subsequently reached C1902 (program database manager
+mismatch). Installed compiler/PDB file versions matched; the host service's
+root cause remains unresolved. A target-scoped `_CL_=/Z7` build installed the
+64-bit Python 3.12.13 runtime in 2 minutes 3 seconds with no compile errors.
+The staged interpreter then passed isolated startup, ssl/ctypes imports,
+zlib/bz2/lzma round trips, and an in-memory SQLite create/insert/select. Logs:
+`python-z7-20261022.log` and `python-runtime-20261022.log`, both exit zero.
+Python needed no generated install-rule modification. This is selected runtime
+validation, not the complete Python test suite.
 
 The ignored historical trees `build-archive-20261021/` and
 `deps/build-archive-20261021/` remain intact, as does the download cache.
@@ -204,6 +238,9 @@ that executable is not evidence for the synchronized/product branch.
 | Existing Windows CI step | Extracted batch step passed locally with VS2026, 11 identity checks plus the Python build fixture; four package-variable fixtures passed; no GitHub run |
 | Python build configuration | One test/four environment fixtures passed; actual generated command contains the one-project limit |
 | Python external bootstrap | Six exact official Git trees verified; pinned bootstrap script exited zero using only cached entries |
+| Bundled Python runtime | Python 3.12.13 compiled/staged with scoped `/Z7`; isolated imports, compression and SQLite checks passed |
+| OpenCV installed-library probe | Native static link, PNG round trip and threshold/count passed |
+| Offline wx source configuration | 3/3 CMake tests passed; real download/update targets ran without fetching or replacing supplied sources |
 | Native probes | Generated identity compiled and ran; real association helper/query compiled against fake Win32 APIs |
 | Windows resources | Actual generated `.rc` compiled with Windows SDK `rc.exe` |
 | Package configuration | Actual CPack config generated for x64 and ARM64; separate identities and preserved license reference verified |
@@ -266,8 +303,9 @@ The exact integration/ongoing maintenance procedure is in
 
 ## Exact continuation and remaining acceptance
 
-1. Check whether the full dependency command completed. Inspect its exit file
-   and log; do not launch another heavy build while it is running.
+1. Check the `wx-offline-sdk-20261022` exit file and log. Do not launch another
+   heavy build while it is running. After wx completes, run the full dependency
+   target to finish wxInspector.
 2. Apply the shell environment in [WINDOWS_BUILD.md](WINDOWS_BUILD.md), then run
    `build_win.bat -d --vs 2022 -j 2`. Preserve the successful targets and all 27
    hash-verified archives. Scope any `/Z7` workaround to the build process and

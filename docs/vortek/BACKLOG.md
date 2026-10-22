@@ -6,8 +6,8 @@ work by product value and dependencies.
 
 | Priority | Task | Dependency | Acceptance evidence |
 | --- | --- | --- | --- |
-| 1 | Finish the active dependency build, currently OpenEXR | 19/32 dependency targets completed; no concurrent heavy build | Target exits recorded; preserve successful stamps |
-| 2 | Build and validate bundled Python when its target is reached | Six external trees verified; offline bootstrap passed; explicit project limit fixed | Python 3.12.13 stages correctly with required modules; native integration tests pass |
+| 1 | Finish wxWidgets and wxInspector | 30/32 targets completed; exact wx source and pinned SDK recovered; wx compiling | Target exits recorded; preserve successful targets |
+| 2 | Validate application integration with staged Python | Python 3.12.13 built/staged; isolated SSL, ctypes, compression and SQLite checks passed | Application links and uses its bundled runtime successfully |
 | 3 | Compile/install the product branch and run application tests | Complete dependencies | Application, tests, translations, and install results recorded independently |
 | 4 | Test clean startup and co-installation | Product executable | Orca and Vortek config directories remain distinct; original data unchanged |
 | 5 | Test cube import, transforms, slice, preview, G-code, and project round trip | Working GUI | Saved test project/G-code and documented results, no physical print |
