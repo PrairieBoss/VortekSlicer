@@ -221,6 +221,48 @@ int main() {
 }
 ''')
 
+    @unittest.skipUnless(shutil.which("cl"), "MSVC developer environment not active")
+    def test_protocol_removal_preserves_foreign_or_packaged_handlers(self):
+        source = (ROOT / "src/slic3r/GUI/GUI_App.cpp").read_text(encoding="utf-8")
+        begin = source.index("void GUI_App::disassociate_url(")
+        end = source.index("void GUI_App::start_download(", begin)
+        helper = source[begin:end]
+        self.compile_and_run("protocol_ownership", r'''
+#include <string>
+#define WIN32 1
+static bool packaged = false, owned = false, exists = true;
+static unsigned writes = 0;
+bool is_running_in_msix() { return packaged; }
+struct wxRegKey {
+    enum { HKCU };
+    wxRegKey(int, const std::wstring&) {}
+    bool Exists() { return exists; }
+    void operator=(const char*) { ++writes; }
+};
+struct GUI_App {
+    bool check_url_association(std::wstring, std::wstring&) { return owned; }
+    void disassociate_url(std::wstring);
+};
+''' + helper + r'''
+int main() {
+    GUI_App app;
+    app.disassociate_url(L"orcaslicer");
+    if (writes != 0) return 1;
+    owned = true;
+    packaged = true;
+    app.disassociate_url(L"orcaslicer");
+    if (writes != 0) return 2;
+    packaged = false;
+    exists = false;
+    app.disassociate_url(L"orcaslicer");
+    if (writes != 0) return 3;
+    exists = true;
+    app.disassociate_url(L"orcaslicer");
+    if (writes != 1) return 4;
+    return 0;
+}
+''')
+
 
 if __name__ == "__main__":
     unittest.main()

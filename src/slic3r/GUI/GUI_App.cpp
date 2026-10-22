@@ -9894,6 +9894,9 @@ void GUI_App::disassociate_url(std::wstring url_prefix)
 #ifdef WIN32
     if (is_running_in_msix())
         return;
+    std::wstring registered_command;
+    if (!check_url_association(url_prefix, registered_command))
+        return;
     wxRegKey key_full(wxRegKey::HKCU, L"Software\\Classes\\" + url_prefix + L"\\shell\\open\\command");
     if (!key_full.Exists()) {
         return;
