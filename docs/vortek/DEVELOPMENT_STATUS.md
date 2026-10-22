@@ -149,9 +149,8 @@ Probe: `build-validation-logs/openssl-link-probe.log`.
 
 The resumed dependency build completed OCCT, GLEW, OpenCSG, OpenCV, Blosc,
 OpenEXR, TBB, OpenVDB, PNG, SLVS, libnoise and JPEG. Together with the earlier
-14 targets and the subsequently completed Python, Qhull, GMP and MPFR targets,
-All 32 dependency targets have now completed successfully, including wxWidgets
-and wxInspector. GMP and MPFR are repository-supplied
+14 targets and the subsequently completed Python, Qhull, GMP, MPFR, wxWidgets
+and wxInspector targets, all 32 dependency targets have now completed successfully. GMP and MPFR are repository-supplied
 Windows binary copy targets, not ExternalProject compilations. Logs:
 `dependencies-resume-20261022.log`, `dependencies-after-python-20261022.log`,
 `qhull-20261022.log`, `gmp-20261022.log`, and `mpfr-20261022.log`.
@@ -180,7 +179,8 @@ Log: `wx-config-tests-20261022.log`. Provenance is in
 
 The first offline configure then required WebView2 SDK 1.0.3485.44. Its archived
 NuGet package matched the exact SHA-256 pinned by wxWidgets and was freshly
-extracted into the new build's expected package directory. The offline wx target compiled and installed in 3 minutes 21 seconds (exit zero).
+extracted into the new build's expected package directory. The offline wx target
+compiled and installed in 3 minutes 21 seconds (exit zero).
 The full dependency command then completed wxInspector and exited zero in
 28 seconds. Logs: `wx-offline-sdk-20261022.log` and
 `dependencies-final-20261022.log`, with matching zero exit checkpoints.
@@ -234,6 +234,28 @@ The ignored historical trees `build-archive-20261021/` and
 The application archive contains a resources junction and an older executable;
 that executable is not evidence for the synchronized/product branch.
 
+The Windows CLI console helper was also reproduced discarding redirected
+stdout/stderr: a native probe exited zero but both captured streams were empty.
+The helper now preserves existing CRT streams and binds only missing streams
+when a console is needed. It rejects unbound GUI descriptors before calling
+`_get_osfhandle`, following Microsoft's CRT API contract. A native regression
+fixture passed pipe input/output with a hidden console and with no console,
+file output plus NUL input, and a missing-stderr case beside preserved pipes
+(2.545 seconds). Only Boost's stream clear calls are aliased in that fixture;
+Windows/CRT operations are real. Logs: `console-probe-before.log` (expected
+failure) and `console-tests-20261022.log` (exit zero). The existing Windows CI
+step includes this fixture. The full product executable is still compiling.
+
+A separately linked installed-wxWidgets probe confirmed that the generated
+Vortek app key and the Orca app key resolve to distinct user-data directories.
+It created no directories and opened no configuration files. Logs:
+`wx-path-probe-configure.log`, `wx-path-probe-build.log`, and
+`wx-path-probe-run.log`, zero exit checkpoint. A read-only query through the
+repository's WebView2 loader found installed runtime 155.0.4283.62 (HRESULT zero);
+no runtime installation was needed or attempted. Log:
+`webview-runtime-20261022.log`. These are prerequisite/native API checks, not
+full GUI startup or co-installation verification.
+
 ## Verification evidence
 
 | Check | Observed result |
@@ -252,7 +274,7 @@ that executable is not evidence for the synchronized/product branch.
 | Bundled Python runtime | Python 3.12.13 compiled/staged with scoped `/Z7`; isolated imports, compression and SQLite checks passed |
 | OpenCV installed-library probe | Native static link, PNG round trip and threshold/count passed |
 | Offline wx source configuration | 3/3 CMake tests passed; real download/update targets ran without fetching or replacing supplied sources |
-| Native probes | Generated identity compiled and ran; real association helper/query compiled against fake Win32 APIs |
+| Native probes | Generated identity and real wx path lookup passed; actual console helper preserved real redirected CRT streams; association helper/query used fake Win32 APIs |
 | Windows resources | Actual generated `.rc` compiled with Windows SDK `rc.exe` |
 | Package configuration | Actual CPack config generated for x64 and ARM64; separate identities and preserved license reference verified |
 | MSIX guard | Refused before staging; existing sentinel preserved |

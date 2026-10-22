@@ -21,6 +21,11 @@ Diagnostic/support links and archive names identify the fork. Existing Windows
 CI uses product-aware installer/artifact names, skips upstream-only MSIX, and
 runs the focused native tests in its build-script check job.
 
+A separate Windows CLI correction preserves inherited stdin/stdout/stderr
+instead of replacing pipes/files/NUL with console streams. The failure was
+reproduced with native CRT capture; a real Win32/CRT regression fixture covers
+pipes with/without a console, file redirection and a partially missing stream.
+
 Validation: twelve focused tests pass with VS2022 and Windows SDK active. They
 include generated identity/resource checks, C++ compile/run probes, mocked
 registry ownership/error cases, Windows resource compilation, x64/ARM64 CPack

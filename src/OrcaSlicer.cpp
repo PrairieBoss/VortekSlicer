@@ -9,6 +9,7 @@
     #include <Windows.h>
     #include <wchar.h>
     #include <commctrl.h>
+    #include <io.h>
     #ifdef SLIC3R_GUI
     extern "C"
     {
@@ -8101,6 +8102,22 @@ void attach_console_on_demand(){
     static bool console_attached = false;
 
     if (!console_attached) {
+        // A GUI process can inherit redirected streams without a console.
+        // Preserve those CRT handles before AttachConsole changes standard handles.
+        const auto stream_is_open = [](FILE* stream) {
+            const int descriptor = _fileno(stream);
+            if (descriptor < 0) return false; // GUI streams can have descriptor -2.
+            const intptr_t handle = _get_osfhandle(descriptor);
+            return handle != -1 && handle != -2;
+        };
+        const bool stdout_open = stream_is_open(stdout);
+        const bool stderr_open = stream_is_open(stderr);
+        const bool stdin_open = stream_is_open(stdin);
+        if (stdout_open && stderr_open && stdin_open) {
+            console_attached = true;
+            return;
+        }
+
         // Try attaching to the parent console first
         if (AttachConsole(ATTACH_PARENT_PROCESS)) {
             console_attached = true;
@@ -8116,14 +8133,14 @@ void attach_console_on_demand(){
 
         if (console_attached) {
             FILE* fp = nullptr;
-            // Redirect standard C streams to the console
-            if (freopen_s(&fp, "CONOUT$", "w", stdout) == 0) {
+            // Bind only streams that were absent; leave file, pipe and NUL redirection intact.
+            if (!stdout_open && freopen_s(&fp, "CONOUT$", "w", stdout) == 0) {
                 setvbuf(stdout, NULL, _IONBF, 0); // Optional: Disable buffering
             }
-            if (freopen_s(&fp, "CONOUT$", "w", stderr) == 0) {
+            if (!stderr_open && freopen_s(&fp, "CONOUT$", "w", stderr) == 0) {
                 setvbuf(stderr, NULL, _IONBF, 0); // Optional: Disable buffering
             }
-            if (freopen_s(&fp, "CONIN$", "r", stdin) == 0) {
+            if (!stdin_open && freopen_s(&fp, "CONIN$", "r", stdin) == 0) {
                 // Input redirection successful
             }
             // Sync C++ streams with C streams after redirection
