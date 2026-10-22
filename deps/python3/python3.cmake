@@ -101,12 +101,19 @@ if(WIN32)
     set(_conf_cmd
         ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/python3-msbuild.rsp" <SOURCE_DIR>/PCbuild/msbuild.rsp
     )
+    # PCbuild defaults to an unbounded /m independently of the outer CMake
+    # build. Preserve an explicit project limit on memory-constrained hosts.
+    set(_python_parallel_args "")
+    if("$ENV{CMAKE_BUILD_PARALLEL_LEVEL}" MATCHES "^[1-9][0-9]*$")
+        set(_python_parallel_args -M "/m:$ENV{CMAKE_BUILD_PARALLEL_LEVEL}")
+    endif()
     set(_build_cmd
         ${CMAKE_COMMAND} -E env ${_python_env_args}
         cmd /c PCbuild\\build.bat
             -p ${_python_pcbuild_platform}
             -c ${_python_pcbuild_config}
             --no-tkinter
+            ${_python_parallel_args}
     )
     set(_install_cmd
         ${CMAKE_COMMAND}
