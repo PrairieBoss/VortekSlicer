@@ -308,6 +308,71 @@ int main() {
 ''')
 
     @unittest.skipUnless(shutil.which("cl"), "MSVC developer environment not active")
+    def test_file_associations_abort_on_missing_or_truncated_executable_path(self):
+        source = (ROOT / "src/slic3r/GUI/GUI_App.cpp").read_text(encoding="utf-8")
+        begin = source.index("void GUI_App::associate_files(")
+        end = source.index("bool GUI_App::check_url_association(", begin)
+        functions = source[begin:end]
+        self.compile_and_run("association_path", r'''
+#include "libslic3r_version.h"
+#include <cstring>
+#include <cwchar>
+#include <string>
+#define WIN32 1
+using DWORD = unsigned long;
+using HKEY = int;
+constexpr DWORD MAX_PATH = 260;
+constexpr HKEY HKEY_CURRENT_USER = 1;
+constexpr int SHCNE_ASSOCCHANGED = 1, SHCNF_IDLIST = 0;
+static DWORD path_result = 30, capacity_used = 0;
+static unsigned path_queries = 0, writes = 0, deletes = 0, notifications = 0;
+static bool packaged = false;
+bool is_running_in_msix() { return packaged; }
+DWORD GetModuleFileNameW(void*, wchar_t* buffer, DWORD capacity) {
+    ++path_queries;
+    capacity_used = capacity;
+    std::wcscpy(buffer, L"C:\\VortekSlicer\\orca-slicer.exe");
+    return path_result;
+}
+namespace boost { namespace nowide {
+std::wstring widen(const char* text) { return std::wstring(text, text + std::strlen(text)); }
+} }
+bool set_into_win_registry(HKEY, const wchar_t*, const wchar_t*) { ++writes; return true; }
+bool del_win_registry(HKEY, const wchar_t*, const wchar_t*) { ++deletes; return true; }
+void SHChangeNotify(int, int, void*, void*) { ++notifications; }
+struct AppConfig { std::string get(const char*) { return "false"; } };
+struct GUI_App {
+    AppConfig config;
+    AppConfig* app_config = &config;
+    void associate_files(std::wstring);
+    void disassociate_files(std::wstring);
+};
+''' + functions + r'''
+int main() {
+    GUI_App app;
+    for (DWORD result : {0UL, MAX_PATH, MAX_PATH + 1}) {
+        path_result = result;
+        app.associate_files(L"3mf");
+        if (capacity_used != MAX_PATH || writes || deletes || notifications) return 1;
+        app.disassociate_files(L"3mf");
+        if (capacity_used != MAX_PATH || writes || deletes || notifications) return 2;
+    }
+    path_result = 30;
+    path_queries = 0;
+    packaged = true;
+    app.associate_files(L"3mf");
+    app.disassociate_files(L"3mf");
+    if (path_queries || writes || deletes || notifications) return 3;
+    packaged = false;
+    app.associate_files(L"3mf");
+    if (capacity_used != MAX_PATH || writes != 3 || deletes || notifications != 1) return 4;
+    app.disassociate_files(L"3mf");
+    if (deletes != 3 || notifications != 2) return 5;
+    return 0;
+}
+''')
+
+    @unittest.skipUnless(shutil.which("cl"), "MSVC developer environment not active")
     def test_protocol_removal_preserves_foreign_or_packaged_handlers(self):
         source = (ROOT / "src/slic3r/GUI/GUI_App.cpp").read_text(encoding="utf-8")
         begin = source.index("void GUI_App::disassociate_url(")

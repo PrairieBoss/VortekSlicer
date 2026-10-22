@@ -9800,7 +9800,9 @@ void GUI_App::associate_files(std::wstring extend)
     if (is_running_in_msix())
         return;
     wchar_t app_path[MAX_PATH];
-    ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
+    const DWORD path_length = ::GetModuleFileNameW(nullptr, app_path, MAX_PATH);
+    if (path_length == 0 || path_length >= MAX_PATH)
+        return;
 
     std::wstring prog_path = L"\"" + std::wstring(app_path) + L"\"";
     std::wstring prog_id = boost::nowide::widen(SLIC3R_PROJECT_PROG_ID);
@@ -9827,7 +9829,9 @@ void GUI_App::disassociate_files(std::wstring extend)
     if (is_running_in_msix())
         return;
     wchar_t app_path[MAX_PATH];
-    ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
+    const DWORD path_length = ::GetModuleFileNameW(nullptr, app_path, MAX_PATH);
+    if (path_length == 0 || path_length >= MAX_PATH)
+        return;
 
     std::wstring prog_path = L"\"" + std::wstring(app_path) + L"\"";
     std::wstring prog_id = boost::nowide::widen(SLIC3R_PROJECT_PROG_ID);

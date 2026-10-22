@@ -77,6 +77,13 @@ an unrelated full-access mask. Microsoft documents the parameter as a
 The focused tests substitute Win32 calls and exercise these cases without
 changing HKCU or HKLM.
 
+File-association registration and removal pass the executable-path buffer
+capacity in characters and abort before registry changes if the lookup fails
+or truncates. This follows the [GetModuleFileNameW contract](https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-getmodulefilenamew).
+Paths at or above the existing `MAX_PATH` buffer limit are declined rather than
+registered incompletely. The focused native test exercises these failure paths
+with fake Win32 calls, preserving the real registry.
+
 Automatic `orcaslicer://` registration is retained only when the application
 key is actually `OrcaSlicer`. VortekSlicer does not take over an installed
 OrcaSlicer's login or download links at startup or after closing Preferences.
