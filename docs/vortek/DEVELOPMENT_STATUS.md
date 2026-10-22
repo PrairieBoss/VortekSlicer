@@ -2,164 +2,239 @@
 
 Last verified: 2026-10-21, America/Regina.
 
-## Baseline and branch
+## Current branches and source
 
-- Current roadmap phase: **Phase 3, Windows build validation, externally blocked**.
-- Working branch: `codex/windows-build-validation`.
-- Synchronization/source baseline: `04684c58f935fc5beaba4d5959dcd7741c6a22d1`.
-- Latest code fix: `dcd5382b5c94c2fe382059206e9499bee5a84c10`.
-- Canonical upstream source: `8d69fa3e5a9d5424899b0f9c2aaceb4af61c2c38`.
-- Baseline source trees both resolve to `110cf80a49c2b4dc3e35fe4bfa97f5eaea193d10`.
-- Local `main` remains `b3a0c8bd407c3de1ff1f9962eccc3dabd1e12f18`.
-- Origin remains `https://github.com/PrairieBoss/VortekSlicer.git`.
-- Upstream remote now uses `https://github.com/OrcaSlicer/OrcaSlicer.git`.
+- Active branch: `codex/vortek-product-identity`.
+- Product identity commit: `f5e9d1ae4c9babd98c3a46e99b46f486c7caaf87`.
+- Protocol ownership fix: `8f8e7c12a057ebee7ce381b9aa12ef3c9bdf836d`.
+- Application updater guard: `393bc00b1896047906569833dcbf00433ce91962`.
+- Configuration selection regression test: `ce09e1d7b9`.
+- Windows artifact/check integration: `b5704f61a3`.
+- Product diagnostic/support destinations: `3472ffa022`.
+- Preserved validation branch: `codex/windows-build-validation` at `9714136543`.
+- Earlier profile-tool correction: `dcd5382b5c`; build records: `75f87f5d1e`, `9714136543`.
+- Source synchronization baseline: `04684c58f935fc5beaba4d5959dcd7741c6a22d1`.
+- Pinned upstream: `8d69fa3e5a9d5424899b0f9c2aaceb4af61c2c38`.
+- Their baseline trees match: `110cf80a49c2b4dc3e35fe4bfa97f5eaea193d10`.
+- Local main remains `b3a0c8bd407c3de1ff1f9962eccc3dabd1e12f18`.
+- Origin: `https://github.com/PrairieBoss/VortekSlicer.git`.
+- Upstream: `https://github.com/OrcaSlicer/OrcaSlicer.git`.
 
-The validation branch adds a narrow Windows profile-warning diagnostic fix
-and these engineering records. No production slicing logic, printer profiles,
-application branding, or licensing notices have been changed. Use
-`git log -3 --oneline` for the latest local milestone commits.
+Product work is based on the synchronized source plus the preserved validation
+commits. It has not bypassed main. Use `git log -5 --oneline` for subsequent
+record commits. No development PR has been opened or merged.
 
-## Repository recovery
+## Active workstreams
 
-[PR #2](https://github.com/PrairieBoss/VortekSlicer/pull/2) is still open and
-draft. Its head, base, expected synchronization commit, and mergeability were
-verified. All four returned PR workflows completed successfully: Build all,
-Check profiles, Shellcheck, and Check locale. The normal two-parent local
-synchronization merge is identical to the pinned upstream source.
+| Workstream | Current result | Next useful action |
+| --- | --- | --- |
+| Windows build | All 27 generated archive downloads hash-verified; OpenSSL and CURL built/installed; OCCT compiling | Finish remaining dependencies |
+| Branding | Product names, captions, splash version, About credit, Windows metadata implemented | Compile GUI, inspect layout, supply verified Vortek graphics |
+| Configuration isolation | Separate normal/portable/viewer/credential identities; safer Windows associations implemented | Runtime co-installation and account tests against disposable data |
+| Packaging | Distinct NSIS/CPack identity configured for x64/ARM64; unsafe inherited MSIX staging blocked | Build internal NSIS/portable candidate after application validation |
+| QA | Eleven focused fork tests passed, including native compile/run, filesystem fixtures and resource compilation | Application tests and functional slicing after dependencies finish |
+| Maintenance | Architecture, backlog, build procedure and PR draft prepared | Keep records aligned with observed results and open reviewable PRs when authenticated |
 
-The connected GitHub integration can read the repository but returned
-`FORBIDDEN: Resource not accessible by integration` when asked to mark PR #2
-ready for review. The CLI's PrairieBoss token is invalid. No merge was
-performed, and `main` was not bypassed or updated directly.
+The product changes are **implemented but not runtime-validated**. They do not
+establish a working GUI or production-ready slicer. The current execution
+strategy allows independent workstreams to proceed despite build blockers.
 
-[PR #1](https://github.com/PrairieBoss/VortekSlicer/pull/1) remains an open
-draft at `24efa9b85ef206cd659df8ba317f4f969d7cdc59`. Preserve it as historical
-documentation; do not merge its obsolete build instructions unchanged.
-No new PR has been opened in this session. A push of the validation branch
-was attempted and failed with `getaddrinfo() thread failed to start`; the
-milestone commits remain local until network and authentication are restored.
+## Implemented product behavior
 
-The previous ignored build trees, approximately 12.96 GiB and 9.62 GiB,
-were moved to dated ignored archives. A resource junction in the application
-tree and old validation outputs were preserved. The 0.42 GiB download cache
-was retained. More than 500 GB of disk space was available before this work.
-These archives remain a deferred cleanup item, not reclaimed disk space.
+`version.inc` now identifies VortekSlicer and Vortek Manufacturing. Generated
+identity constants drive application-data keys, configuration/viewer names,
+Windows file ProgIDs, credential service, portable directory, and resources.
+The translation domain remains `OrcaSlicer`, as do internal build targets,
+launcher/DLL names, profile formats, icons, and splash graphics.
+The generated homepage identifies the fork repository for diagnostic build
+links, issue reports and CPack metadata; diagnostic exports use Vortek filenames.
 
-## Verified results
+Normal Windows configuration uses the VortekSlicer application identity.
+Portable mode recognizes `VortekSlicer-data` and ignores upstream's generic
+`data_dir`. No automatic Orca configuration, preset, or account migration was
+added. Explicit `--datadir` remains a caller override; do not point it at an
+existing OrcaSlicer installation's data.
 
-| Category | Result |
+Windows association queries handle read errors and non-string values before
+comparing them. Removal checks ownership and uses the proper default view
+selector. Automatic `orcaslicer://` takeover is prevented for the fork.
+The credential service is `VortekSlicer/Auth`; tests access no live credentials.
+URL disassociation also checks ownership before clearing a handler. The normal
+application updater entry point returns before requesting upstream installer
+metadata; a manual check queues an explanatory dialog. Profile update logic
+is unchanged. Provider-directed forced upgrades still require review.
+
+CPack keeps the upstream NSIS system but separates installation, uninstallation,
+upgrade identity and shortcut labels. The inherited MSIX script refuses to
+stage under OrcaSlicer's publisher/Store identity and preserves existing staging
+on that failure. It is not yet a supported Vortek MSIX packaging route.
+The existing Windows workflow now uses product-aware artifact names/installer
+paths, skips upstream-only MSIX packaging for the fork, and runs the focused
+native suite in its build-script check job. These workflow changes were not
+executed on GitHub. Its extracted batch step passed locally using the existing
+VS2026 installation (11/11, 6.808 seconds); this did not change the VS2022
+application build. The PowerShell variable step passed local product/architecture
+fixtures for Vortek/Orca names and x64/ARM64. No toolchain was installed.
+
+See [product architecture](../HLSD/vortek-product-identity.md) for exact mappings
+and compatibility decisions. No slicing-engine logic, printer settings,
+production profiles, licenses, or original attribution were removed or changed.
+
+## Build recovery and observed environment
+
+The configured toolchain remains VS2022 17.14.37, MSBuild 17.14.51,
+MSVC 19.44.35228.0/x64, Windows SDK 10.0.26100.0, and CMake 4.3.2.
+Use one MSBuild project at a time and two compiler jobs. No new major toolchain
+was installed and no global network, PATH, or security setting was changed.
+
+DNS checks in the execution subprocess failed for `github.com`,
+`api.github.com`, and `www.microsoft.com`; localhost resolved. No process proxy
+variables were set. This does not prove the host's normal network is broken:
+the in-app browser reached GitHub and downloaded Assimp. Host VPN/proxy/DNS
+configuration was not changed.
+
+The official Assimp 5.4.3 archive was downloaded through the browser to
+`C:/Users/Tech/Downloads/assimp-5.4.3.tar.gz`. Its SHA-256 exactly matched
+`66dfbaee288f2bc43172440a55d0235dfc7bf885dda6435c038e8000e79582cb`
+from `deps/Assimp/Assimp.cmake`, then it was copied into the existing cache.
+
+The resumed dependency build reported completion of Assimp, Boost, Eigen,
+CGAL, Cereal, Draco, and Expat. The previously built ZLIB is preserved.
+The resumed log is `build-validation-logs/dependencies-recovered.log`.
+No obsolete Eigen BLAS/LAPACK workaround was introduced.
+
+The pinned FFmpeg archive was subsequently recovered with the normal browser
+link click/download flow and hash-verified:
+
+- Cache: `deps/DL_CACHE/FFMPEG/ffmpeg-n7.0.3-31-g9b6ffd74b5-win64-orca-shared-7.0.zip`.
+- Source: pinned GitHub release asset in `deps/FFMPEG/FFMPEG.cmake`.
+- SHA-256: `e65916020ddb9ef84b2666dfbcbfc9b1d67f69d15b4a66db53754637bf2d498c`.
+
+Earlier direct/background and download-media attempts failed or timed out.
+The normal browser control succeeded. Python 3.12.13, Qhull 8.0.2, the pinned
+SolveSpaceLib snapshot, and wxInspector 1.0.0 were also recovered from their
+configured sources and individually verified before cache placement.
+A generated-download audit verified all 27 pinned SHA-256 archive hashes and
+found no missing archive downloads. Secondary downloads during third-party
+builds may still need network access; this audit does not certify those.
+
+The next observed problem was an OpenSSL compiler stall: compiling its first
+translation unit with `/Zi /FS` stalled, including with a fresh PDB path, while
+the same translation unit compiled with `/Z7`. A process-local `_CL_=/Z7`
+override built the libraries and tool/test executables. The generated install
+rule then failed because `/Z7` embeds debug symbols instead of producing the
+standalone static-library PDB it unconditionally copied. Only the ignored
+OpenSSL generated Makefile was adjusted to copy `ossl_static.pdb` if it exists;
+no dummy PDB was created. The targeted build/install then exited zero.
+See the exact scoped workaround in [WINDOWS_BUILD.md](WINDOWS_BUILD.md).
+This is an environment-specific debug-storage workaround, not a tracked source
+patch or established diagnosis of the host's PDB service.
+
+Logs: `build-validation-logs/openssl-z7.log` (initial install failure) and
+`build-validation-logs/openssl-z7-install.log` (successful target). The installed
+OpenSSL reports 1.1.1w; a `/MT` native probe linked both static libraries, checked
+the SHA-256 of `abc`, and created/freed a TLS context (exit zero). This is not
+the complete upstream OpenSSL test suite or a live TLS/network test.
+Probe: `build-validation-logs/openssl-link-probe.log`.
+
+Active command: `build_win.bat -d --vs 2022 -j 2`, with the normal documented
+environment (no `_CL_` override for other dependencies). Log:
+`build-validation-logs/dependencies-all-cache.log`; exit checkpoint:
+`build-validation-logs/dependencies-all-cache.exit`. CURL completed and OCCT
+is compiling at this checkpoint. No second heavy build runs concurrently.
+
+Static inspection of the pinned CPython archive found additional bootstrap
+downloads in `PCbuild/get_externals.bat`: bzip2, SQLite, xz, zlib, libffi and
+OpenSSL binaries. They use version tags via `get_external.py` and provide no
+archive SHA-256 pins there. They are not covered by the 27-archive CMake audit.
+Review source provenance/checksums before recovering these through an alternate
+route; do not silently seed unverified archives or disable required modules.
+
+The ignored historical trees `build-archive-20261021/` and
+`deps/build-archive-20261021/` remain intact, as does the download cache.
+The application archive contains a resources junction and an older executable;
+that executable is not evidence for the synchronized/product branch.
+
+## Verification evidence
+
+| Check | Observed result |
 | --- | --- |
-| Source baseline | Sync tree equals pinned upstream tree; working tree initially clean |
-| Dependency configuration | Passed with VS2022, MSVC 19.44, SDK 10.0.26100.0, CMake 4.3.2 |
-| Complete dependency build | Blocked on missing Assimp archive and unavailable network DNS; stopped retries |
-| Targeted ZLIB dependency | Compiled and installed successfully with one MSBuild project and two compiler jobs |
-| ZLIB sample | Compression, decompression, gzip, dictionary, and inflate checks exited 0 |
-| Profile tree check | 66 vendors; 0 files with errors; 0 files with warnings |
-| Profile tool unit tests | Passed after fix: 263 run, 262 passed, 1 existing upstream skip, no failures |
-| Windows build-script suite | 192 passed, 30 failed; optional clang-cl/standalone LLVM unavailable |
-| Pinned baseline CI | Windows build-script tests and Windows x64 application unit-test job passed |
-| Pinned baseline CI packaging | Windows x64 portable, installer, and MSIX artifacts exist; not run locally |
-| Application compilation | Not reached on synchronized source |
-| Application unit tests | Not built or run |
-| Startup, GUI, import, slicing, preview, G-code, project round trip | Not validated on synchronized source |
-| Packaging and clean-machine deployment | Not attempted |
+| Initial dependency configuration | Passed |
+| ZLIB compilation/install and sample | Passed in the earlier validation milestone |
+| Resumed dependencies | Assimp, Boost, Eigen, CGAL, Cereal, Draco, Expat, OpenSSL and CURL completed; full dependency build incomplete |
+| OpenSSL installed-library probe | Static link, known SHA-256 and TLS-context creation passed; no live network |
+| Existing profile tree | Earlier check: 66 vendors, no errors or warnings; profiles unchanged |
+| Existing profile-tool suite | Earlier validation: 262 passes, one existing upstream skip |
+| Combined script suite after fork changes | 274 run, 273 passed, one existing upstream local-clone skip; 146.812 seconds, exit zero with VS2022 active |
+| Fork identity suite | 11/11 passed with VS2022/Windows SDK active; latest focused run 5.247 seconds |
+| Existing Windows CI step | Extracted batch step passed locally with VS2026, 11/11; four package-variable fixtures passed; no GitHub run |
+| Native probes | Generated identity compiled and ran; real association helper/query compiled against fake Win32 APIs |
+| Windows resources | Actual generated `.rc` compiled with Windows SDK `rc.exe` |
+| Package configuration | Actual CPack config generated for x64 and ARM64; separate identities and preserved license reference verified |
+| MSIX guard | Refused before staging; existing sentinel preserved |
+| Configuration startup selection | Production selection code with fake wx path provider and real temporary filesystem; normal, fork-portable, upstream-portable and explicit override cases passed |
+| Windows build-script suite | Earlier 192 passes/30 optional LLVM-related failures; not rerun without a relevant change |
+| Source checks | Diff whitespace and changed-file credential-pattern scans passed |
+| Complete product compilation | Not reached |
+| GUI, slicing, preview, G-code, project round trip | Not runtime-validated |
+| Installer and clean-machine deployment | Not built/run |
 
-The profile suite originally failed because its temporary directories were not
-writable. With a writable repository-local temporary directory, 263 tests ran:
-one failed on Windows path separators and one was skipped by an existing
-upstream guard for an unavailable developer-local BambuStudio clone. The
-existing regression test and the complete 263-test suite pass after normalizing
-the obsolete-key warning's relative path to forward slashes. The full passing
-run took 84.092 seconds. No tests were disabled for this fix.
+Fork logs: `build-validation-logs/product-identity-tests.log` and
+`build-validation-logs/script-tests-product.log` (combined discovery). These focused
+checks are separate from app compilation, live registry/credential behavior,
+visual QA, and physical printer validation. No physical printer was operated.
 
-Local evidence lives in ignored `build-validation-logs/`: dependency logs,
-ZLIB logs, profile check, profile unit tests, and build-script suite output.
-The full dependency attempt was interrupted after confirming the missing
-archive and DNS failure; it must not be counted as a successful build.
+Pinned baseline [CI run 36739271100](https://github.com/PrairieBoss/VortekSlicer/actions/runs/36739271100)
+reported successful Windows build-script tests and Windows x64 application
+unit tests. Its Windows portable/installer/MSIX artifacts exist, but predate
+all product changes and could not be materialized for local smoke tests.
+They must not be presented as validation of this branch.
 
-### Remote CI evidence
+## GitHub and pending reviews
 
-[Build all run 36739271100](https://github.com/PrairieBoss/VortekSlicer/actions/runs/36739271100)
-belongs to sync head `04684c58f935fc5beaba4d5959dcd7741c6a22d1`.
-Its returned job metadata reports success for Windows build-script tests and
-Windows x64 application unit tests. Its Windows build steps include successful
-application compilation, system preset cache generation, installer creation,
-portable packaging, and MSIX packaging. This is remote baseline evidence,
-not a local reproduction or validation of the later diagnostic fix.
+[PR #2](https://github.com/PrairieBoss/VortekSlicer/pull/2) was last verified
+open/draft, mergeable at the expected sync head, with four successful returned
+workflows. The connected integration rejected marking it ready as inaccessible
+by integration. CLI authentication was rechecked and its token remains invalid;
+no repeated write attempt was made without a changed authentication state.
 
-The nonexpired x64 portable artifact is
-`OrcaSlicer_Windows_PR2_x64_portable`, artifact ID `11115708140`, size
-251052784 bytes, SHA-256 digest
-`66b23e89da215ef6f47b88e080436192ef841306c33947846dc9c827dd024e08`.
-Retrieval through the connected GitHub service returned a file reference, but
-materialization into this workspace failed with `download failed`. No local
-portable archive or application was obtained, and no executable from this CI
-run was launched. If artifact transfer becomes available before a local build
-can finish, use this exact artifact for additional baseline smoke tests,
-verify its digest, and keep its results separate from local build evidence.
+Human action for CLI recovery: run `gh auth login --hostname github.com --web`
+and complete the interactive browser authorization. Alternatively restore a
+GitHub connection with the required repository write permissions. Never put
+credentials in the repository.
 
-## Active blockers and required intervention
+After access is restored, recheck PR #2's exact head/base, required checks and
+mergeability; merge normally, fetch origin, and fast-forward local main only.
+[PR #1](https://github.com/PrairieBoss/VortekSlicer/pull/1) remains historical:
+do not merge its obsolete documentation unchanged.
 
-1. **Build network:** the build process cannot resolve `github.com` or
-   `api.github.com`. Assimp 5.4.3 is the first missing download, and the old
-   cache contains only 21 nonempty archives. Restore permitted network/DNS
-   access for normal pinned dependency downloads; more missing archives may
-   follow. No source workaround is justified.
-2. **GitHub writes:** restore an authorized GitHub integration or CLI login
-   before marking PR #2 ready, merging it normally, pushing milestones, and
-   opening development PRs. Reverify PR conditions immediately before merging.
-3. **Optional-toolchain test coverage:** the build-script suite assumes
-   clang-cl/LLVM installations absent here. This does not establish a failure
-   of the chosen MSVC baseline, but the full suite is not green.
+Then push the preserved validation and product branches and open reviewed PRs.
+[PRODUCT_IDENTITY_PR.md](PRODUCT_IDENTITY_PR.md) is the complete local draft.
+The profile correction and product changes remain separate commits.
+Do not automatically merge the product PR or publish a release.
+The exact integration/ongoing maintenance procedure is in
+[UPSTREAM_SYNC.md](UPSTREAM_SYNC.md).
 
-No new application executable or distribution package was produced. The
-fresh dependency artifact is `deps/build/OrcaSlicer_dep/usr/local/lib/zlib.lib`.
-An older executable under the archived build is not the current product.
+## Exact continuation and remaining acceptance
 
-## Exact continuation
+1. Check whether the full dependency command completed. Inspect its exit file
+   and log; do not launch another heavy build while it is running.
+2. Apply the shell environment in [WINDOWS_BUILD.md](WINDOWS_BUILD.md), then run
+   `build_win.bat -d --vs 2022 -j 2`. Preserve the successful targets and all 27
+   hash-verified archives. Scope any `/Z7` workaround to the build process and
+   document the exact invocation; do not modify global compiler settings.
+3. After all dependencies pass, run
+   `build_win.bat -s --vs 2022 -j 2 --run-tests -i`. Record application compilation,
+   tests, translations, and installation separately.
+4. Run the isolated startup/import/slice/preview/export/project/co-installation
+   checks in [RELEASE_ACCEPTANCE.md](RELEASE_ACCEPTANCE.md). Verify real config paths and preservation
+   of an existing Orca installation using disposable fixtures first.
+5. Runtime-test the updater guard, review provider-directed forced upgrades and
+   cloud callback handling, then finish verified graphics and internal packaging.
+   None is a public release.
 
-1. Restore build-process network access, then run the PowerShell environment
-   setup and dependency command in [Windows validation](WINDOWS_BUILD.md).
-   Keep the fresh `deps/build/` tree and verified download cache; do not clean
-   successful work solely to retry a failed download.
-2. Finish all dependency targets. Record the first meaningful failure if one
-   occurs; do not reinstate the obsolete Eigen BLAS/LAPACK workaround.
-3. Run `build_win.bat -s --vs 2022 -j 2 --run-tests -i` in that same configured
-   shell. Record compilation, tests, translations, and install independently.
-4. Use isolated application data to smoke-test startup, model import, a simple
-   20 mm cube, transforms, printer/filament selection, slicing, preview, G-code
-   export, project save/reopen, and shutdown. Do not send output to a printer.
-5. Only after that baseline is usable, implement isolated Vortek branding and
-   application-data identity on a separate feature branch.
-
-When network and authentication are restored, also push the local validation
-branch with `git push -u origin codex/windows-build-validation` and open a
-reviewable PR against the synchronized `main`. Its commits separate the
-profile-warning fix from the build-validation records. Do not merge that
-development PR automatically.
-
-Independently, after GitHub write access is restored, mark PR #2 ready and
-merge it with a normal merge only if its head remains the expected sync
-commit, target remains `main`, checks pass, and conflicts are absent. Fetch
-origin and update local `main` by fast-forward only. Keep PR #1 separate.
-
-## Prioritized backlog and acceptance gates
-
-- **Now:** resolve external blockers, finish dependency/application builds,
-  run upstream tests and functional smoke tests, then validate branding and
-  separate user configuration. Refresh docs from those actual results.
-- **Next:** document verified profile creation using upstream profile tools,
-  produce an internal portable/installer candidate using upstream packaging,
-  and validate resources, DLLs, attribution, and upgrade/uninstall behavior.
-  No Vortek printer or material settings have been invented or shipped.
-- **Later:** adapt the existing Windows CI only where the fork needs it;
-  document upstream synchronization, support boundaries, and release checks.
-- **Experimental:** AI and manufacturing-system integrations remain outside
-  initial product acceptance.
-
-Release readiness is **not established**. The synchronized application has
-not yet compiled or run locally, is not Vortek-branded, and has no tested
-distribution artifact. Required acceptance evidence still includes functional
-slicing, configuration isolation, representative tests, packaging and
-clean-machine validation, preserved licenses, and a reviewed internal
-candidate. Public release still requires explicit approval.
+Independent work can continue on updater safety, approved assets, profile
+workflow validation, source maintenance and CI preparation. See the separately
+ranked [BACKLOG.md](BACKLOG.md). Release readiness is not established: there is
+no current locally built product executable, tested GUI/slicing workflow, or
+validated Vortek installer. The initial definition of done remains incomplete.

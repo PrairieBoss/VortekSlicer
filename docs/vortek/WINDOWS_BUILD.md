@@ -79,6 +79,12 @@ the upstream SHA-256 verification; ZLIB compiled and installed. Its generated
 `example.exe` also completed successfully. Run that sample from a temporary
 working directory because it writes `foo.gz`.
 
+The continuation recovered Assimp 5.4.3 through the browser, verified its
+upstream-pinned SHA-256, and resumed this same procedure. Assimp, Boost, Eigen,
+CGAL, Cereal, Draco, and Expat completed. FFmpeg, Python, Qhull, SolveSpaceLib, and wxInspector archives were subsequently
+recovered and verified as well. All 27 generated archive pins pass a cache audit.
+Retain successful build stamps; third-party bootstrap downloads are separate.
+
 ## Checks available before the full application build
 
 With the temporary-directory settings above:
@@ -105,13 +111,35 @@ The existing profile unit test exposed a Windows-only warning-path separator
 mismatch. The fork normalizes that diagnostic with `Path.as_posix()`; profile
 values, identifiers, slicing code, and file contents are unaffected.
 
+For focused product identity/configuration/packaging checks, activate the
+already-installed VS2022 compiler and SDK for the test process:
+
+```powershell
+cmd.exe /d /c 'call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat" >nul && python -m unittest discover -s scripts/tests -p test_product_identity.py -v'
+```
+
+Use the writable temporary-directory settings above. This suite passed all
+eleven tests, including native compile/run, configuration filesystem fixtures
+and resource compilation. If no
+developer environment is active, native probes are explicitly skipped; do not
+count that as full native coverage. The suite never writes live associations,
+credentials, or user config. Its CPack fixtures configure packages but do not
+install or publish anything.
+The combined `unittest discover -s scripts/tests -t scripts` run after these
+changes completed 274 tests with VS2022 active: 273 passed and the existing
+developer-local Bambu clone case was skipped (146.812 seconds). See
+`build-validation-logs/script-tests-product.log` and its zero exit checkpoint.
+
 ## Downloads and local outputs
 
 Dependency archives stay in `deps/DL_CACHE/`. CMake verifies their pinned
 hashes. A clean build still needs network access for archives that are absent
-or invalid; the previous cache is not a complete set for this source revision.
-The first observed missing archive is Assimp 5.4.3. Local DNS resolution of
-`github.com` and `api.github.com` failed in this execution environment.
+or invalid; all 27 generated archive pins were verified at this checkpoint.
+The first missing archive, Assimp 5.4.3, has been recovered and hash-verified.
+The remaining generated archives have also been recovered. DNS resolution of
+`github.com`, `api.github.com`, and
+`www.microsoft.com` failed in subprocesses; browser access worked for Assimp.
+This distinction matters: do not diagnose the whole host network as broken.
 Do not disable TLS verification, reuse incompatible compiled dependencies, or
 remove a required dependency to work around this restriction.
 
@@ -130,3 +158,48 @@ See [development status](DEVELOPMENT_STATUS.md) for the current blockers and
 the ordered continuation steps. That record also identifies the pinned CI
 Windows packages and successful remote unit-test job. Artifact transfer into
 the local workspace failed, so those packages have not been smoke-tested here.
+
+## Local OpenSSL debug-symbol workaround
+
+OpenSSL stalled compiling with `/Zi /FS`, including with a fresh PDB path. The
+same source compiled with `/Z7`; the host PDB service's root cause is unresolved.
+For this target only, the following process-local override produced the static
+libraries and tool/test executables. Those test executables were not run as a
+complete test suite.
+
+```powershell
+$env:_CL_ = '/Z7'
+.\build_win.bat -d -t dep_OpenSSL --vs 2022 -j 2 --no-configure
+```
+
+MSVC reads `_CL_` after command-line flags, so its `/Z7` supersedes `/Zi` and
+stores symbols in the object/library files. The first install then failed
+copying the absent `ossl_static.pdb`. With this confirmed failure only, the
+following adjustment was applied to the ignored generated Makefile. It does
+not change a tracked dependency recipe or manufacture a PDB.
+
+```powershell
+@'
+from pathlib import Path
+path = Path('deps/build/dep_OpenSSL-prefix/src/dep_OpenSSL/makefile')
+lines = path.read_bytes().splitlines(keepends=True)
+matches = [i for i, line in enumerate(lines) if b'copy.pl" ossl_static.pdb' in line]
+assert len(matches) == 1, 'Unexpected OpenSSL install rule; inspect manually'
+i = matches[0] - 1
+old = b'@if "$(SHLIBS)"==""'
+new = old + b' if exist ossl_static.pdb'
+if new not in lines[i]:
+    assert old in lines[i], 'Unexpected OpenSSL install guard'
+    lines[i] = lines[i].replace(old, new, 1)
+    path.write_bytes(b''.join(lines))
+'@ | python -
+.\build_win.bat -d -t dep_OpenSSL --vs 2022 -j 2 --no-configure
+Remove-Item Env:\_CL_
+```
+
+The second command exited zero. An installed-library probe linked `libssl.lib`
+and `libcrypto.lib`, verified SHA-256 for `abc`, and created/freed a TLS context.
+CURL subsequently compiled and installed against this dependency. This local
+workaround has not established a clean-checkout build or full OpenSSL test
+result. Re-extraction replaces the generated Makefile adjustment; logs and
+the active dependency command are recorded in the status file.
