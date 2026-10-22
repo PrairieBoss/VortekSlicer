@@ -103,6 +103,8 @@ include(CPack)
                             "CPACK_PACKAGE_INSTALL_REGISTRY_KEY", "CPACK_NSIS_DISPLAY_NAME"):
                     self.assertEqual(values[key], "VortekSlicer", key)
                 self.assertEqual(values["CPACK_PACKAGE_VENDOR"], "Vortek Manufacturing")
+                self.assertEqual(values["CPACK_PACKAGE_HOMEPAGE_URL"],
+                                 "https://github.com/PrairieBoss/VortekSlicer")
                 self.assertEqual(values["CPACK_PACKAGE_EXECUTABLES"], "orca-slicer;VortekSlicer")
                 self.assertTrue(values["CPACK_PACKAGE_FILE_NAME"].endswith("_" + architecture.lower()))
                 self.assertTrue(values["CPACK_RESOURCE_FILE_LICENSE"].endswith("/LICENSE.txt"))
@@ -134,6 +136,7 @@ using namespace std::literals;
 static_assert(SLIC3R_APP_NAME == "VortekSlicer"sv);
 static_assert(SLIC3R_APP_FULL_NAME == "VortekSlicer"sv);
 static_assert(SLIC3R_APP_KEY == "VortekSlicer"sv);
+static_assert(SLIC3R_APP_HOMEPAGE == "https://github.com/PrairieBoss/VortekSlicer"sv);
 static_assert(GCODEVIEWER_APP_NAME == "VortekSlicer G-code Viewer"sv);
 static_assert(GCODEVIEWER_APP_KEY == "VortekSlicerGcodeViewer"sv);
 static_assert(SLIC3R_PORTABLE_DATA_DIR == "VortekSlicer-data"sv);

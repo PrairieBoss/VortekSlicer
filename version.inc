@@ -4,6 +4,7 @@
 set(SLIC3R_APP_NAME "VortekSlicer")
 set(SLIC3R_APP_KEY "VortekSlicer")
 set(SLIC3R_APP_VENDOR "Vortek Manufacturing")
+set(SLIC3R_APP_HOMEPAGE "https://github.com/PrairieBoss/VortekSlicer")
 # Keep the upstream catalog name separate from the user-data identity.
 set(SLIC3R_TRANSLATION_DOMAIN "OrcaSlicer")
 
