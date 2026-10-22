@@ -29,7 +29,12 @@ pipes with/without a console, file redirection and a partially missing stream.
 Configuration import also explicitly retains the upstream generated G-code
 header alongside fork and legacy headers; unrelated producers remain rejected.
 
-Validation: thirteen focused tests pass with VS2022 and Windows SDK active. They
+The web welcome page also receives the native product name in its heading
+and setup sentence, preserving 15 locale dictionaries and the original
+navigation helper. Four JavaScript tests cover locale text, event order,
+literal name handling and upstream fallback; real webview layout remains untested.
+
+Validation: fourteen focused tests pass with VS2022 and Windows SDK active. They
 include generated identity/resource checks, C++ compile/run probes, mocked
 registry ownership/error cases, Windows resource compilation, x64/ARM64 CPack
 configuration, the MSIX early-failure staging-preservation check, and actual

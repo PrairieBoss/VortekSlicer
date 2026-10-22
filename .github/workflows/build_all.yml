@@ -22,6 +22,7 @@ on:
      - 'scripts/tests/test_python_build_config.py'
      - 'scripts/tests/test_wxwidgets_build_config.py'
      - 'scripts/tests/test_windows_console.py'
+     - 'scripts/tests/test_welcome_branding.py'
      - 'scripts/build_preset_cache.*'
      - 'scripts/flatpak/**'
      - 'scripts/msix/**'
@@ -35,6 +36,7 @@ on:
      - 'deps/**'
      - 'deps_src/**'
      - 'src/**'
+     - 'resources/web/guide/1/**'
      - '**/CMakeLists.txt'
      - 'version.inc'
      - 'cmake/VortekPackaging.cmake'
@@ -47,6 +49,7 @@ on:
      - 'scripts/tests/test_python_build_config.py'
      - 'scripts/tests/test_wxwidgets_build_config.py'
      - 'scripts/tests/test_windows_console.py'
+     - 'scripts/tests/test_welcome_branding.py'
      - 'build_release_macos.sh'
      - 'scripts/build_preset_cache.*'
      - 'scripts/flatpak/**'
@@ -100,6 +103,8 @@ jobs:
           python -m unittest discover -s scripts/tests -p test_wxwidgets_build_config.py -v
           if errorlevel 1 exit /b 1
           python -m unittest discover -s scripts/tests -p test_windows_console.py -v
+          if errorlevel 1 exit /b 1
+          python -m unittest discover -s scripts/tests -p test_welcome_branding.py -v
 
   build_linux:
     strategy:

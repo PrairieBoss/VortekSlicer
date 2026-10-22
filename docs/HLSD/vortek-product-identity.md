@@ -34,6 +34,15 @@ Troubleshooting build/issue links and package metadata use the product
 homepage. Exported log/debug archive names use the application key. Upstream
 documentation, component links and attribution retain their original targets.
 
+The web setup wizard receives the generated application name as a JSON string
+from its native document-loaded handler. The welcome page keeps that identity
+across translation initialization and applies it only to its heading and setup
+sentence. Existing translated text surrounds the product name, including the
+Turkish translated spelling of the upstream name. Text is assigned through
+`textContent`; links, credits and artwork are untouched. The upstream identity
+leaves its existing welcome copy unchanged. Subframe events do not trigger the
+native handoff, and other guide pages ignore the optional welcome function.
+
 The existing G-code producer table recognizes both `SLIC3R_APP_NAME` and
 upstream OrcaSlicer/BambuStudio headers. Configuration import has a separate
 header guard: it accepts the generated fork header, the upstream

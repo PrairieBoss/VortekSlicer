@@ -387,7 +387,10 @@ void GuideFrame::OnDocumentLoaded(wxWebViewEvent &evt)
     wxString NowUrl = m_browser->GetCurrentURL();
 
     if (evt.GetURL() == m_browser->GetCurrentURL()) {
-        // wxLogMessage("%s", "Document loaded; url='" + evt.GetURL() + "'");
+        // The welcome page translates first; then apply the native product name.
+        const std::string script = "if (typeof ApplyApplicationName === 'function') ApplyApplicationName(" +
+                                   json(SLIC3R_APP_NAME).dump() + ");";
+        RunScript(wxString::FromUTF8(script));
     }
     UpdateState();
 

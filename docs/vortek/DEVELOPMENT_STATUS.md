@@ -8,6 +8,8 @@ Last verified: 2026-10-22, America/Regina.
 - Product identity commit: `f5e9d1ae4c9babd98c3a46e99b46f486c7caaf87`.
 - Protocol ownership fix: `8f8e7c12a057ebee7ce381b9aa12ef3c9bdf836d`.
 - Application updater guard: `393bc00b1896047906569833dcbf00433ce91962`.
+- Windows CLI stream preservation: `de090f4456`.
+- Upstream G-code configuration-header compatibility: `0f431e3bf3`.
 - Configuration selection regression test: `ce09e1d7b9`.
 - Windows artifact/check integration: `b5704f61a3`.
 - Windows CI Python-fixture integration: `a9ab64cc96`.
@@ -37,7 +39,7 @@ record commits. No development PR has been opened or merged.
 | Branding | Product names, captions, splash version, About credit, Windows metadata implemented | Compile GUI, inspect layout, supply verified Vortek graphics |
 | Configuration isolation | Separate normal/portable/viewer/credential identities; safer Windows associations implemented | Runtime co-installation and account tests against disposable data |
 | Packaging | Distinct NSIS/CPack identity configured for x64/ARM64; unsafe inherited MSIX staging blocked | Build internal NSIS/portable candidate after application validation |
-| QA | Thirteen focused fork tests passed, including native compile/run, G-code header compatibility, filesystem fixtures and resource compilation | Application tests and functional slicing after dependencies finish |
+| QA | Fourteen focused fork tests and four welcome JavaScript tests passed; standalone console and dependency configuration checks passed | Application tests and functional slicing after dependencies finish |
 | Maintenance | Architecture, backlog, build procedure and PR draft prepared | Keep records aligned with observed results and open reviewable PRs when authenticated |
 
 The product changes are **implemented but not runtime-validated**. They do not
@@ -190,8 +192,15 @@ using the normal environment plus the process-local extra configure option
 `ORCA_SLICER_CMAKE_ARGS=-DSLIC3R_MSVC_PDB=OFF`. This supported option avoids
 requiring compiler PDB service operation; no installed compiler setting changed.
 GUI, CAD and tests remain enabled. Log:
-`build-validation-logs/application-vortek-20261022.log`; exit checkpoint:
-`build-validation-logs/application-vortek-20261022.exit`. No second heavy build
+`build-validation-logs/application-vortek-resume-20261022.log`; exit checkpoint:
+`build-validation-logs/application-vortek-resume-20261022.exit`.
+The first `application-vortek-20261022.log` build was intentionally interrupted
+to include the corrected configuration import object. MSBuild repeated the
+unfinished core compiler batch; completed dependency and auxiliary projects
+were reused. Do not interrupt another unfinished batch merely for a source edit;
+let it finish, then use an incremental build for already compiled changes.
+The resumed command has compiled the corrected Config source; no full
+application/test/install completion result exists yet. No second heavy build
 runs concurrently. Configuration's optional uv 0.11.21 download failed on DNS;
 upstream permits the build to continue without that optional package installer.
 No unverified substitute was provided. Its absence must remain visible in the
@@ -241,7 +250,7 @@ when a console is needed. It rejects unbound GUI descriptors before calling
 `_get_osfhandle`, following Microsoft's CRT API contract. A native regression
 fixture passed pipe input/output with a hidden console and with no console,
 file output plus NUL input, and a missing-stderr case beside preserved pipes
-(2.545 seconds). Only Boost's stream clear calls are aliased in that fixture;
+(2.289 seconds). Only Boost's stream clear calls are aliased in that fixture;
 Windows/CRT operations are real. Logs: `console-probe-before.log` (expected
 failure) and `console-tests-20261022.log` (exit zero). The existing Windows CI
 step includes this fixture. The full product executable is still compiling.
@@ -271,6 +280,21 @@ definitions (`config-test-syntax-20261022.log`, exit zero); full native executio
 remains pending. The application build must pick up the changed Config object
 before runtime compatibility is claimed.
 
+The setup wizard's welcome heading and setup sentence now receive the native
+product name after translation. The two-node update preserves all 15 existing
+locale dictionaries, credits, artwork, and upstream fallback. It handles native
+identity arriving before or after translation; the name is JSON encoded in C++
+and inserted as text in JavaScript. Four Node tests passed, including literal
+markup/dollar characters, absent elements and both event orders. The production
+native loaded-event method also compiled/ran with a fake webview and real JSON
+library, checking payload identity and subframe exclusion. Latest focused suite:
+14/14 in 15.035 seconds. Logs: `welcome-branding-20261022.log` and
+`welcome-identity-tests-20261022.log`. This is **implemented but not runtime-
+validated in the application**; visual layout and actual webview event delivery
+remain pending. Existing Windows CI includes the welcome test and a narrow PR
+path filter for its resources. The original welcome navigation helper remains
+intact. No graphics were invented or replaced.
+
 ## Verification evidence
 
 | Check | Observed result |
@@ -282,7 +306,8 @@ before runtime compatibility is claimed.
 | Existing profile tree | Earlier check: 66 vendors, no errors or warnings; profiles unchanged |
 | Existing profile-tool suite | Earlier validation: 262 passes, one existing upstream skip |
 | Combined script suite after fork changes | 274 run, 273 passed, one existing upstream local-clone skip; 146.812 seconds, exit zero with VS2022 active |
-| Fork identity suite | 13/13 passed with VS2022/Windows SDK active; latest run 8.665 seconds, including upstream G-code header compatibility |
+| Fork identity suite | 14/14 passed with VS2022/Windows SDK active; latest run 15.035 seconds, including upstream G-code compatibility and native welcome identity handoff |
+| Welcome JavaScript | Four tests passed against all 15 shipped locale dictionaries, including translation event order, literal text and upstream fallback |
 | Existing Windows CI step | Updated extracted step passed locally with VS2026: 12 identity tests (9.174 s), Python fixture (0.177 s), wx fixtures (8.513 s); four earlier package-variable fixtures passed; no GitHub run |
 | Python build configuration | One test/four environment fixtures passed; actual generated command contains the one-project limit |
 | Python external bootstrap | Six exact official Git trees verified; pinned bootstrap script exited zero using only cached entries |
