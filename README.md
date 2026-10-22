@@ -1,3 +1,20 @@
+# VortekSlicer
+
+VortekSlicer is Vortek Manufacturing's Windows fork of
+[OrcaSlicer](https://github.com/OrcaSlicer/OrcaSlicer).
+The Windows application and packaging are under validation; completed checks
+and remaining acceptance work are recorded in the project status.
+
+- [Windows build instructions](docs/vortek/WINDOWS_BUILD.md)
+- [Current development status](docs/vortek/DEVELOPMENT_STATUS.md)
+- [Product identity and configuration isolation](docs/HLSD/vortek-product-identity.md)
+- [License](LICENSE.txt)
+
+The documentation below describes upstream OrcaSlicer. Its downloads, build
+badges, community links and website identify the upstream project.
+
+---
+
 <div align="center">
 
 <picture>

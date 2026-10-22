@@ -106,6 +106,15 @@ variables were set. This does not prove the host's normal network is broken:
 the in-app browser reached GitHub and downloaded Assimp. Host VPN/proxy/DNS
 configuration was not changed.
 
+A later read-only check found no enabled user WinINet proxy, configured proxy
+server, or PAC URL. A distinct native WinINet retrieval attempt for the pinned
+uv archive also failed with error 12007 (name not resolved), using normal TLS
+checks and no cookies/automatic credentials. No archive was promoted to cache.
+Log: `uv-wininet-20261022.log` and exit checkpoint 1. This confirms the native
+alternative is also blocked in this execution environment; it does not establish
+that the host browser or all network channels fail. No repeated retry is needed
+without a changed network condition or download mechanism.
+
 The official Assimp 5.4.3 archive was downloaded through the browser to
 `C:/Users/Tech/Downloads/assimp-5.4.3.tar.gz`. Its SHA-256 exactly matched
 `66dfbaee288f2bc43172440a55d0235dfc7bf885dda6435c038e8000e79582cb`
@@ -400,8 +409,11 @@ The exact integration/ongoing maintenance procedure is in
    Keep `EXTERNALS_DIR` set to the verified six-entry Python cache on this host.
 3. To resume the application build, set
    `$env:ORCA_SLICER_CMAKE_ARGS='-DSLIC3R_MSVC_PDB=OFF'`, then run
-   `build_win.bat -s --vs 2022 -j 2 --run-tests -i`. Record application compilation,
-   tests, translations, and installation separately. The optional uv package
+   `build_win.bat -s --vs 2022 -j 2 --run-tests -i --no-configure` with the existing
+   verified CMake cache. This avoids repeating optional uv retrieval when only
+   resuming source compilation. Omit `--no-configure` for a fresh tree or changed
+   CMake options. Record application compilation, tests, translations and
+   installation separately. The optional uv package
    installer remains unavailable; do not conflate that with core slicing.
 4. Run the isolated startup/import/slice/preview/export/project/co-installation
    checks in [RELEASE_ACCEPTANCE.md](RELEASE_ACCEPTANCE.md). Verify real config paths and preservation
