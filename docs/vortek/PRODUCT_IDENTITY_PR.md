@@ -26,7 +26,10 @@ instead of replacing pipes/files/NUL with console streams. The failure was
 reproduced with native CRT capture; a real Win32/CRT regression fixture covers
 pipes with/without a console, file redirection and a partially missing stream.
 
-Validation: twelve focused tests pass with VS2022 and Windows SDK active. They
+Configuration import also explicitly retains the upstream generated G-code
+header alongside fork and legacy headers; unrelated producers remain rejected.
+
+Validation: thirteen focused tests pass with VS2022 and Windows SDK active. They
 include generated identity/resource checks, C++ compile/run probes, mocked
 registry ownership/error cases, Windows resource compilation, x64/ARM64 CPack
 configuration, the MSIX early-failure staging-preservation check, and actual
