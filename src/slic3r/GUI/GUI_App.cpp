@@ -9768,9 +9768,9 @@ static bool set_into_win_registry(HKEY hkeyHive, const wchar_t* pszVar, const wc
         iRC = ::RegSetValueExW(hkey, L"", 0, REG_SZ, (BYTE*)pszValue, (::wcslen(pszValue) + 1) * sizeof(wchar_t));
         if (iRC == ERROR_SUCCESS)
             ret = true;
+        RegCloseKey(hkey);
     }
 
-    RegCloseKey(hkey);
     return ret;
 }
 

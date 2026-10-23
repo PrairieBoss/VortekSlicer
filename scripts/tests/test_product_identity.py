@@ -333,6 +333,52 @@ int main() {
 ''')
 
     @unittest.skipUnless(shutil.which("cl"), "MSVC developer environment not active")
+    def test_registry_writes_close_only_acquired_handles(self):
+        source = (ROOT / "src/slic3r/GUI/GUI_App.cpp").read_text(encoding="utf-8")
+        begin = source.index("static bool set_into_win_registry(")
+        end = source.index("static bool del_win_registry(", begin)
+        self.compile_and_run("registry_write_handles", r'''
+#include <cwchar>
+using HKEY = int;
+using DWORD = unsigned long;
+using BYTE = unsigned char;
+constexpr int ERROR_SUCCESS = 0, ERROR_FILE_NOT_FOUND = 2, ERROR_ACCESS_DENIED = 5;
+constexpr DWORD REG_SZ = 1, REG_DWORD = 4, RRF_RT_ANY = 0, KEY_ALL_ACCESS = 0;
+static int read_result = ERROR_FILE_NOT_FOUND, create_result = ERROR_ACCESS_DENIED;
+static int write_result = ERROR_SUCCESS, creates = 0, writes = 0, closes = 0;
+static DWORD stored_type = REG_SZ;
+int RegGetValueW(HKEY, const wchar_t*, const wchar_t*, DWORD, DWORD* type,
+                 wchar_t* buffer, DWORD*) {
+    *type = stored_type;
+    std::wcscpy(buffer, L"already registered");
+    return read_result;
+}
+int RegCreateKeyExW(HKEY, const wchar_t*, int, int, int, DWORD, void*, HKEY* key, DWORD*) {
+    ++creates;
+    if (create_result == ERROR_SUCCESS) *key = 123;
+    return create_result;
+}
+int RegSetValueExW(HKEY, const wchar_t*, int, DWORD, BYTE*, DWORD) { ++writes; return write_result; }
+int RegCloseKey(HKEY) { ++closes; return ERROR_SUCCESS; }
+''' + source[begin:end] + r'''
+int main() {
+    if (set_into_win_registry(0, L"test", L"new") || creates != 1 || writes || closes) return 1;
+    create_result = ERROR_SUCCESS;
+    write_result = ERROR_ACCESS_DENIED;
+    if (set_into_win_registry(0, L"test", L"new") || writes != 1 || closes != 1) return 2;
+    write_result = ERROR_SUCCESS;
+    if (!set_into_win_registry(0, L"test", L"new") || writes != 2 || closes != 2) return 3;
+    read_result = ERROR_ACCESS_DENIED;
+    if (set_into_win_registry(0, L"test", L"new") || creates != 3 || closes != 2) return 4;
+    read_result = ERROR_SUCCESS;
+    if (set_into_win_registry(0, L"test", L"already registered") || creates != 3 || closes != 2) return 5;
+    stored_type = REG_DWORD;
+    if (set_into_win_registry(0, L"test", L"new") || creates != 3 || closes != 2) return 6;
+    return 0;
+}
+''')
+
+    @unittest.skipUnless(shutil.which("cl"), "MSVC developer environment not active")
     def test_disassociation_preserves_foreign_registry_values(self):
         # Compile the actual production helper against fake Win32 calls. This
         # exercises ownership and failure paths without changing HKCU/HKLM.
