@@ -5,6 +5,9 @@ Last verified: 2026-10-22, America/Regina.
 ## Current branches and source
 
 - Active branch: `codex/vortek-product-identity`.
+- Foreign installer dispatch guard: `3399d7c6fc`.
+- Windows CLI acceptance test: `e72de26a77` (registered; application execution pending).
+- Registry acquisition-failure correction: `adb03cbce1`.
 - Product identity commit: `f5e9d1ae4c9babd98c3a46e99b46f486c7caaf87`.
 - Protocol ownership fix: `8f8e7c12a057ebee7ce381b9aa12ef3c9bdf836d`.
 - Application updater guard: `393bc00b1896047906569833dcbf00433ce91962`.
@@ -36,11 +39,11 @@ record commits. No development PR has been opened or merged.
 
 | Workstream | Current result | Next useful action |
 | --- | --- | --- |
-| Windows build | All 32 dependency targets passed; product application build started with GUI/CAD/tests enabled | Resolve application compile/test/install results |
+| Windows build | All 32 dependency targets passed; interrupted GUI compiler batch resumed; pinned uv recovered and verified | Finish active application build, then configure incrementally to capture uv and Windows CLI test |
 | Branding | Product names, captions, splash version, About credit, Windows metadata implemented | Compile GUI, inspect layout, supply verified Vortek graphics |
 | Configuration isolation | Separate normal/portable/viewer/credential identities; safer Windows associations implemented | Runtime co-installation and account tests against disposable data |
 | Packaging | Distinct NSIS/CPack identity configured for x64/ARM64; unsafe inherited MSIX staging blocked | Build internal NSIS/portable candidate after application validation |
-| QA | Fourteen focused fork tests and four welcome JavaScript tests passed; standalone console and dependency configuration checks passed | Application tests and functional slicing after dependencies finish |
+| QA | Sixteen focused fork tests and four welcome JavaScript tests passed; standalone console and dependency configuration checks passed | Application tests and functional slicing after dependencies finish |
 | Maintenance | Architecture, backlog, build procedure and PR draft prepared | Keep records aligned with observed results and open reviewable PRs when authenticated |
 
 The product changes are **implemented but not runtime-validated**. They do not
@@ -69,12 +72,20 @@ selector. Automatic `orcaslicer://` takeover is prevented for the fork.
 The credential service is `VortekSlicer/Auth`; tests access no live credentials.
 URL disassociation also checks ownership before clearing a handler. File
 association changes now pass executable-path capacity in characters and abort
-on failed/truncated lookup. Portable discovery requires a directory: a regular
+on failed/truncated lookup. Registry writes now close a handle only after
+successful creation; the access-denied regression failed before the one-line
+correction and passed afterward. The fixture also covers failed writes,
+unchanged values and non-string values without touching the real registry.
+Portable discovery requires a directory: a regular
 file named `VortekSlicer-data` is preserved and ignored. Both regressions were
 reproduced before their fixes; the native fixtures passed afterward. The normal
 application updater entry point returns before requesting upstream installer
 metadata; a manual check queues an explanatory dialog. Profile update logic
-is unchanged. Provider-directed forced upgrades still require review.
+is unchanged. The shared version dispatcher and normal/forced notification
+entry points now reject foreign installer metadata before state writes or UI
+events. The native test failed before the correction and passed afterward for
+both fork and upstream identities. Account and file-compatibility UI remain
+separate runtime acceptance tasks.
 
 CPack keeps the upstream NSIS system but separates installation, uninstallation,
 upgrade identity and shortcut labels. The inherited MSIX script refuses to
@@ -197,13 +208,18 @@ The full dependency command then completed wxInspector and exited zero in
 28 seconds. Logs: `wx-offline-sdk-20261022.log` and
 `dependencies-final-20261022.log`, with matching zero exit checkpoints.
 
-The active command is now `build_win.bat -s --vs 2022 -j 2 --run-tests -i`,
+The active command is now `build_win.bat -s --vs 2022 -j 2 --run-tests -i --no-configure`,
 using the normal environment plus the process-local extra configure option
 `ORCA_SLICER_CMAKE_ARGS=-DSLIC3R_MSVC_PDB=OFF`. This supported option avoids
 requiring compiler PDB service operation; no installed compiler setting changed.
 GUI, CAD and tests remain enabled. Log:
-`build-validation-logs/application-vortek-resume-20261022.log`; exit checkpoint:
-`build-validation-logs/application-vortek-resume-20261022.exit`.
+`build-validation-logs/application-vortek-continue-20261022.log`; exit checkpoint:
+`build-validation-logs/application-vortek-continue-20261022.exit`.
+The previous resume command stopped during the unfinished GUI compiler batch
+without an exit checkpoint. The prior log had stopped changing for over 50 minutes and no build was
+visible through available process checks, so the existing build was resumed; successful core/dependency targets
+were reused. The current GUI batch is progressing without a recorded compiler
+error. Do not interrupt it merely to apply the new CTest/uv configuration.
 The first `application-vortek-20261022.log` build was intentionally interrupted
 to include the corrected configuration import object. MSBuild repeated the
 unfinished core compiler batch; completed dependency and auxiliary projects
@@ -213,8 +229,8 @@ The resumed command has compiled the corrected Config source; no full
 application/test/install completion result exists yet. No second heavy build
 runs concurrently. Configuration's optional uv 0.11.21 download failed on DNS;
 upstream permits the build to continue without that optional package installer.
-No unverified substitute was provided. Its absence must remain visible in the
-packaging/runtime acceptance record.
+No unverified substitute was provided. The later recovery below supplies the
+exact pinned archive; final application discovery/install layout is pending.
 
 Static inspection of the pinned CPython archive found additional bootstrap
 downloads in `PCbuild/get_externals.bat`: bzip2, SQLite, xz, zlib, libffi and
@@ -311,12 +327,12 @@ intact. No graphics were invented or replaced.
 | --- | --- |
 | Initial dependency configuration | Passed |
 | ZLIB compilation/install and sample | Passed in the earlier validation milestone |
-| Resumed dependencies | Assimp, Boost, Eigen, CGAL, Cereal, Draco, Expat, OpenSSL and CURL completed; full dependency build incomplete |
+| Resumed dependencies | All 32 targets completed; final dependency command exited zero |
 | OpenSSL installed-library probe | Static link, known SHA-256 and TLS-context creation passed; no live network |
 | Existing profile tree | Earlier check: 66 vendors, no errors or warnings; profiles unchanged |
 | Existing profile-tool suite | Earlier validation: 262 passes, one existing upstream skip |
-| Combined script suite after fork changes | 274 run, 273 passed, one existing upstream local-clone skip; 146.812 seconds, exit zero with VS2022 active |
-| Fork identity suite | 14/14 passed with VS2022/Windows SDK active; latest run 15.035 seconds, including upstream G-code compatibility and native welcome identity handoff |
+| Combined script suite after current fork changes | 288 run, 287 passed, one existing upstream local-clone skip; 278.111 seconds, exit zero with VS2022 active |
+| Fork identity suite | 16/16 passed with VS2022/Windows SDK active; latest run 9.937 seconds, including foreign update dispatch and registry acquisition failure |
 | Welcome JavaScript | Four tests passed against all 15 shipped locale dictionaries, including translation event order, literal text and upstream fallback |
 | Existing Windows CI step | Current extracted step passed locally with VS2026: 14 identity (14.102 s), Python config (0.328 s), wx config (11.806 s), console (1.952 s), welcome JS (0.597 s): 23 tests total; no GitHub run |
 | Python build configuration | One test/four environment fixtures passed; actual generated command contains the one-project limit |
@@ -362,13 +378,77 @@ runtime was installed. The prepared disposable CLI smoke script is
 `build-validation-temp/smoke_cli.py`; it has not run because the executable is
 still compiling. It uses shipped profiles and preserves input hashes.
 
+## Current continuation checks
+
+The focused identity suite now passes 16/16 tests with VS2022/Windows SDK
+(9.937 seconds). Logs: `update-dispatch-before-20261022.log` and
+`registry-handles-before-20261022.log` demonstrate the two failures before their
+fixes; `registry-handles-tests-20261022.log` is the full focused passing run.
+The combined script suite passed: 288 run, 287 passed and the existing upstream
+local-clone case skipped (278.111 seconds). Log: `script-tests-current-20261022.log`
+and matching zero exit checkpoint.
+
+Windows now has a Python-only `cli_roundtrip` CTest, labeled `RequiresApp`.
+It checks captured help identity, shipped-profile cube slicing, G-code extrusion
+and temperature commands, saved 3MF geometry/settings and re-slicing metrics.
+Each stage has a fresh explicit data directory and retains logs/input/output
+hashes. CMake fixtures verified Windows registration, paths with spaces, the
+missing-binary skip, and preservation of the two Linux Bash test registrations.
+Those are registration checks, **not an application functional pass**. Logs:
+`cli-registration-20261022.log` and `cli-linux-registration-20261022.log`.
+
+Pinned uv 0.11.21 was recovered from the official HTTPS release through an
+available browser-backed retrieval route. Its 23,452,481-byte archive matched
+`ace861f360c6de2babedc1607d0f454b6b09a820dbc8182dc15af927e4df9589`
+from CMake both before and after transfer; ZIP integrity passed. The cache is
+`deps/DL_CACHE/uv/0.11.21/uv-x86_64-pc-windows-msvc.zip`; verified `uv.exe` is
+staged in `build/.uv/0.11.21/` and the build-tree runtime fallback
+`build/src/Release/tools/uv/`. `uv --version` and an offline venv using the
+staged CPython 3.12.13 passed; SSL/ctypes/SQLite imports in that environment
+passed. Logs: `uv-cache-20261022.log`, `uv-runtime-20261022.log`; both exit zero.
+The source configure must run after the active compiler batch to record uv's
+path/install rule and the new Windows CTest. A local fixture wheel installed/imported successfully in the disposable
+environment with indexes disabled. No required application dependency is now
+known to be missing. App-side uv discovery and package layout remain unverified. The browser session was closed; no system software was installed.
+
+The upstream test runner pins NumPy 2.5.3 for the array-backed slicing-binding
+checks. Its official CPython 3.12/Windows x64 wheel is now cached under
+`deps/DL_CACHE/numpy/2.5.3/`. Official PyPI SHA-256
+`0a59a421a32580a009e8a1751345bf829631b990dc1794b80514ab722b435def`
+matched before/after transfer; ZIP integrity passed. Offline installation into
+the disposable venv and native array/matrix checks passed. The first install
+hit denied PE-resource updates in the sandbox default temp; setting process
+TEMP/TMP/TMPDIR to the writable build workspace resolved it. Logs:
+`numpy-cache-20261022.log` (initial install failure) and
+`numpy-runtime-20261022.log` (exit zero). It has not been installed into the
+not-yet-built native test runtime; stage it there after that target finishes.
+
+An isolated native probe linked the existing core library and exercised actual
+AppConfig persistence: create/save/load/update of `VortekSlicer.conf` passed,
+and neighboring `OrcaSlicer.conf` and `.bak` sentinels remained byte-identical.
+Log: `appconfig-runtime-20261022.log`, exit zero. Like the earlier actual-core
+G-code import probe (`config-runtime-probe-20261022.log`, exit zero, six accepted
+header cases and an unrelated producer rejected), it emitted LNK4098 for mixed
+CRT default libraries. Do not silently suppress that warning or treat these
+probes as full app/CTest validation. Both probes ran solely inside disposable
+workspace fixtures; no live user data was read or written.
+
+The active build compiled `GUI_App.cpp` after the new dispatch/registry changes
+(object timestamp 18:09:32 in the host log). This is translation-unit compilation,
+not a completed application link. The install/GUI/slicing gates remain open.
+7-Zip is installed; no NSIS `makensis.exe` was found in the normal install paths,
+workspace tools or local download/package cache. A portable candidate can use
+the existing archiver; NSIS packaging needs its compiler separately.
+
 ## Graphics availability
 
 The existing `Variations of Vortek logo design.png` candidate was located, but
 the current authenticated file-download helper failed DNS resolution before
 materialization. Its artwork has not been inspected or selected for production.
-The public `.ca` website lookup also failed DNS resolution; no alternate asset
-was recovered. No asset was replaced or invented. Graphics remain an independent pending task;
+The public `.ca` website lookup also failed DNS resolution; browser-backed
+retrieval subsequently confirmed the domain has no resolved address on that
+route either. The local brand standards manual contains color/usage rules but
+no embedded artwork. No alternate asset was recovered. No asset was replaced or invented. Graphics remain an independent pending task;
 this does not block compilation or text/configuration work.
 
 ## GitHub and pending reviews
@@ -400,25 +480,24 @@ The exact integration/ongoing maintenance procedure is in
 
 ## Exact continuation and remaining acceptance
 
-1. Check the `application-vortek-20261022` exit file and log. Do not launch
+1. Check the `application-vortek-continue-20261022` exit file and log. Do not launch
    another heavy build while it is running. All dependency targets have passed.
-2. Apply the shell environment in [WINDOWS_BUILD.md](WINDOWS_BUILD.md), then run
-   `build_win.bat -d --vs 2022 -j 2`. Preserve the successful targets and all 27
-   hash-verified archives. Scope any `/Z7` workaround to the build process and
-   document the exact invocation; do not modify global compiler settings.
-   Keep `EXTERNALS_DIR` set to the verified six-entry Python cache on this host.
+2. Preserve the completed dependencies and verified caches; do not rebuild them
+   without a relevant change/failure. Apply the documented shell environment
+   and keep `EXTERNALS_DIR` set to the verified six-entry Python cache.
 3. To resume the application build, set
    `$env:ORCA_SLICER_CMAKE_ARGS='-DSLIC3R_MSVC_PDB=OFF'`, then run
    `build_win.bat -s --vs 2022 -j 2 --run-tests -i --no-configure` with the existing
    verified CMake cache. This avoids repeating optional uv retrieval when only
    resuming source compilation. Omit `--no-configure` for a fresh tree or changed
    CMake options. Record application compilation, tests, translations and
-   installation separately. The optional uv package
-   installer remains unavailable; do not conflate that with core slicing.
+   installation separately. After the active batch finishes, configure once
+   without `--no-configure` to pick up the recovered uv binary and Windows CLI
+   CTest; the verified binary is already in CMake's expected cache path.
 4. Run the isolated startup/import/slice/preview/export/project/co-installation
    checks in [RELEASE_ACCEPTANCE.md](RELEASE_ACCEPTANCE.md). Verify real config paths and preservation
    of an existing Orca installation using disposable fixtures first.
-5. Runtime-test the updater guard, review provider-directed forced upgrades and
+5. Runtime-test the updater guards, review file-compatibility download links and
    cloud callback handling, then finish verified graphics and internal packaging.
    None is a public release.
 

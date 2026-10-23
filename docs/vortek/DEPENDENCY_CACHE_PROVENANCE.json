@@ -99,5 +99,23 @@
       "sha256": "bc09150b179246ac90189649b13be8e6b11b3ac200e817e18df106e1f3cf489e",
       "verification": "Recovered archive matched SHA-256 pinned by wxWidgets build/cmake/lib/webview/CMakeLists.txt; extracted fresh into the new build package directory."
     }
+  },
+  "uv": {
+    "version": "0.11.21",
+    "target": "x86_64-pc-windows-msvc",
+    "url": "https://github.com/astral-sh/uv/releases/download/0.11.21/uv-x86_64-pc-windows-msvc.zip",
+    "archive_sha256": "ace861f360c6de2babedc1607d0f454b6b09a820dbc8182dc15af927e4df9589",
+    "executable_sha256": "5a7ec85884c2ccb1be560cb8fac3eb890df1adf49bfcc070a270ba70401bdd68",
+    "verification": "Official HTTPS release archive recovered using browser-backed retrieval. SHA-256 matched the upstream CMakeLists.txt pin both before and after transfer; ZIP integrity passed. uv --version and offline venv creation using staged CPython 3.12.13 passed. Application discovery and packaging remain unverified. A local fixture wheel installed/imported successfully in that disposable environment; no online package index was used."
+  },
+  "test_numpy": {
+    "version": "2.5.3",
+    "filename": "numpy-2.5.3-cp312-cp312-win_amd64.whl",
+    "source_version_pin": "scripts/run_unit_tests.sh: NUMPY_VERSION",
+    "metadata_url": "https://pypi.org/pypi/numpy/2.5.3/json",
+    "url": "https://files.pythonhosted.org/packages/3c/a1/accf6d4f0c80c5d9ba9735d6b1550e444180599f34dec69ca01360f717ad/numpy-2.5.3-cp312-cp312-win_amd64.whl",
+    "archive_sha256": "0a59a421a32580a009e8a1751345bf829631b990dc1794b80514ab722b435def",
+    "size_bytes": 12567828,
+    "verification": "Version requested by upstream CI. Official PyPI SHA-256 matched before and after transfer; ZIP integrity passed. Offline uv installation in a disposable CPython 3.12.13 venv passed after TEMP/TMP/TMPDIR were scoped to the writable build workspace; native arrays and matrix product passed. Not installed in the dependency runtime or the as-yet-unbuilt native test runtime."
   }
 }

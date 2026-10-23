@@ -322,3 +322,38 @@ reproduction. The optional uv 0.11.21 download failed DNS during configuration;
 upstream allows continuing without it. No alternative uv was substituted.
 Compilation/test/install completion must be checked in the authoritative status
 record rather than inferred from successful dependency builds.
+
+## Verified optional uv recovery
+
+The pinned Windows uv 0.11.21 archive is now cached at
+`deps/DL_CACHE/uv/0.11.21/uv-x86_64-pc-windows-msvc.zip`. Browser-backed
+retrieval reached the official HTTPS release when local execution DNS could
+not. The 23,452,481-byte archive matched the `CMakeLists.txt` SHA-256 pin
+before and after transfer, and its ZIP integrity check passed. No TLS setting
+or dependency version changed.
+
+To restore it into a fresh application build tree from this verified cache:
+
+```powershell
+$uvArchive = 'deps/DL_CACHE/uv/0.11.21/uv-x86_64-pc-windows-msvc.zip'
+$uvExpected = 'ace861f360c6de2babedc1607d0f454b6b09a820dbc8182dc15af927e4df9589'
+if ((Get-FileHash -LiteralPath $uvArchive -Algorithm SHA256).Hash.ToLowerInvariant() -ne $uvExpected) {
+    throw 'Pinned uv archive hash mismatch'
+}
+Expand-Archive -LiteralPath $uvArchive -DestinationPath 'build/.uv/0.11.21' -Force
+```
+
+The normal configure step detects `build/.uv/0.11.21/uv.exe` without downloading.
+An already configured application needs a configuration pass after the active
+compiler batch completes to capture its path and enable its install rule.
+The current executable was also copied into
+`build/src/Release/tools/uv/uv.exe`, the existing runtime fallback location.
+Do not copy binaries into the source resources junction.
+
+`uv --version` reports 0.11.21. An isolated, offline `uv venv` using the staged
+CPython 3.12.13 succeeded, and that environment passed SSL/ctypes/SQLite imports.
+Its cache and environment live only under `build-validation-temp/`.
+Logs: `uv-cache-20261022.log` and `uv-runtime-20261022.log`, both exit zero.
+Archive/executable hashes are in `DEPENDENCY_CACHE_PROVENANCE.json`.
+This validates selected tool/runtime behavior, not application discovery,
+package installation, or the final package layout.

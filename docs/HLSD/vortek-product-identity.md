@@ -90,7 +90,9 @@ the read result and value type before comparing the value.
 an unrelated full-access mask. Microsoft documents the parameter as a
 [registry-view selector](https://learn.microsoft.com/en-us/windows/win32/api/winreg/nf-winreg-regdeletekeyexw).
 The focused tests substitute Win32 calls and exercise these cases without
-changing HKCU or HKLM.
+changing HKCU or HKLM. The write helper closes a registry handle only when
+creation succeeds; creation denial cannot pass an uninitialized handle to
+`RegCloseKey`. A failed value write still closes its acquired handle.
 
 File-association registration and removal pass the executable-path buffer
 capacity in characters and abort before registry changes if the lookup fails
