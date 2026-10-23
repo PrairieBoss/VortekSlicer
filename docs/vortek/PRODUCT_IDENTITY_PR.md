@@ -15,7 +15,7 @@ CPack/NSIS metadata. Association changes verify ownership and decline failed or
 truncated executable paths, and registry handles close only after acquisition. Portable discovery ignores a same-named regular
 file. The fork avoids upstream protocol takeover and normal installer-update
 checks and normal/forced update dispatch; inherited MSIX staging is blocked before changes. Support/diagnostic
-links identify the fork. The web welcome page applies the native name to two
+links and selected translated Preferences labels identify the fork. The web welcome page applies the native name to two
 translated text nodes, preserving all 15 locale dictionaries and navigation.
 
 Separate corrections preserve redirected Windows CLI streams and retain
@@ -50,7 +50,7 @@ project round trip, live association/credential behavior, installer operation
 or clean-machine deployment is claimed. The pinned uv 0.11.21 archive was recovered through browser-backed retrieval and verified against the source SHA-256 pin; an offline environment using staged CPython passed selected imports. App discovery and packaging are pending. The pinned NumPy test wheel is also verified/cached and passed isolated native array checks; the native test runtime still needs it staged after compilation. Existing upstream
 icons/splash remain until verified Vortek assets are selected. There is no
 automatic account/configuration migration; cloud callbacks, compatibility
-links and actual update UI still need runtime acceptance. Public release is outside this PR.
+links and actual update UI still need runtime acceptance. The portable NSIS tool archive is verified, but its x86 executables fail with host DLL-relocation error 623; installer generation remains unverified. Public release is outside this PR.
 
 The earlier profile-tool correction, build changes and product changes remain
 separate commits. Review them independently after normal upstream integration;

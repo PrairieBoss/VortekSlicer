@@ -8,6 +8,8 @@ Last verified: 2026-10-22, America/Regina.
 - Foreign installer dispatch guard: `3399d7c6fc`.
 - Windows CLI acceptance test: `e72de26a77` (registered; application execution pending).
 - Registry acquisition-failure correction: `adb03cbce1`.
+- Translated Preferences product labels: `9232a23fa5`.
+- Current recovery/test records: `122f3f1651`.
 - Product identity commit: `f5e9d1ae4c9babd98c3a46e99b46f486c7caaf87`.
 - Protocol ownership fix: `8f8e7c12a057ebee7ce381b9aa12ef3c9bdf836d`.
 - Application updater guard: `393bc00b1896047906569833dcbf00433ce91962`.
@@ -436,9 +438,28 @@ workspace fixtures; no live user data was read or written.
 The active build compiled `GUI_App.cpp` after the new dispatch/registry changes
 (object timestamp 18:09:32 in the host log). This is translation-unit compilation,
 not a completed application link. The install/GUI/slicing gates remain open.
-7-Zip is installed; no NSIS `makensis.exe` was found in the normal install paths,
-workspace tools or local download/package cache. A portable candidate can use
-the existing archiver; NSIS packaging needs its compiler separately.
+7-Zip is installed. A subsequent packaging-tool recovery downloaded the official
+portable NSIS 3.13 ZIP and matched SourceForge's SHA-256
+`ba63dffc4410ee89193e1cb5a41989991bd77c61068da17e3156d136b7b0b3d8`
+before/after transfer; ZIP integrity and scoped extraction checks passed.
+Cache: `deps/DL_CACHE/NSIS/3.13/nsis-3.13.zip`; extracted tool:
+`build-validation-temp/tools/nsis-3.13/`. Both its x86 root launcher and x86 Bin
+compiler fail CreateProcess with WinError 623 (Illegal System DLL Relocation).
+Log: `nsis-execution-20261022.log`. Compiler/version execution and the proposed
+CPack compile fixture did not succeed. No system install, security-setting
+change or replacement system DLL was attempted. Portable ZIP packaging can
+use the existing archiver; actual NSIS compilation needs a compatible execution
+environment or a separately verified native compiler. Hosted CI remains another
+route once GitHub write access is restored.
+
+Preferences' selected instance/slicing/association controls now substitute the
+generated product name after translation, leaving original `_L` msgids and
+catalogs intact. The actual helper compiled and ran with installed wxWidgets
+for fork/upstream names, including French/Chinese surrounding text and repeated
+name occurrences. Log: `preferences-labels-20261022.log`, exit zero.
+The full Preferences translation unit compiled before that small edit; the next
+incremental build must pick it up. Actual layout is unverified. No control
+behavior, profile value or setting key changed.
 
 ## Graphics availability
 
@@ -494,6 +515,8 @@ The exact integration/ongoing maintenance procedure is in
    installation separately. After the active batch finishes, configure once
    without `--no-configure` to pick up the recovered uv binary and Windows CLI
    CTest; the verified binary is already in CMake's expected cache path.
+   Pick up the Preferences edit and regenerated build-commit metadata in that
+   incremental build before recording a candidate source revision.
 4. Run the isolated startup/import/slice/preview/export/project/co-installation
    checks in [RELEASE_ACCEPTANCE.md](RELEASE_ACCEPTANCE.md). Verify real config paths and preservation
    of an existing Orca installation using disposable fixtures first.

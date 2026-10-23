@@ -117,5 +117,14 @@
     "archive_sha256": "0a59a421a32580a009e8a1751345bf829631b990dc1794b80514ab722b435def",
     "size_bytes": 12567828,
     "verification": "Version requested by upstream CI. Official PyPI SHA-256 matched before and after transfer; ZIP integrity passed. Offline uv installation in a disposable CPython 3.12.13 venv passed after TEMP/TMP/TMPDIR were scoped to the writable build workspace; native arrays and matrix product passed. Not installed in the dependency runtime or the as-yet-unbuilt native test runtime."
+  },
+  "nsis": {
+    "version": "3.13",
+    "filename": "nsis-3.13.zip",
+    "metadata_url": "https://sourceforge.net/projects/nsis/files/NSIS%203/3.13/",
+    "url": "https://sourceforge.net/projects/nsis/files/NSIS%203/3.13/nsis-3.13.zip/download",
+    "archive_sha256": "ba63dffc4410ee89193e1cb5a41989991bd77c61068da17e3156d136b7b0b3d8",
+    "size_bytes": 2363925,
+    "verification": "Official SourceForge project metadata SHA-256 matched before/after transfer; ZIP integrity passed and extraction paths stayed within the workspace. Portable root launcher and Bin compiler are x86. Both fail CreateProcess with WinError 623 (Illegal System DLL Relocation) on this execution host; no compiler execution or installer generation succeeded. No system install or security-setting change was attempted."
   }
 }

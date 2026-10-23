@@ -13,7 +13,7 @@ work by product value and dependencies.
 | 5 | Runtime-test update guards; review file-compatibility links and cloud callbacks | Product executable; shared installer dispatch is guarded | Normal checks offer no upstream installer; login does not seize Orca's protocol |
 | 6 | Apply verified Vortek icon/splash/About assets | Existing design candidate located; download/selection pending | Resource compilation and visual checks at common Windows scaling values |
 | 7 | Finish visible branding without replacing compatibility identifiers | GUI and localization checks | Main flows identify Vortek; required upstream credits remain |
-| 8 | Build an internal NSIS/portable candidate | Tested install tree; 7-Zip available, NSIS compiler absent | Separate install/uninstall behavior, complete DLL/resources/license layout |
+| 8 | Build an internal NSIS/portable candidate | Tested install tree; 7-Zip available; verified NSIS x86 compiler fails host CreateProcess with error 623 | Separate install/uninstall behavior, complete DLL/resources/license layout |
 | 9 | Document and verify profile import/creation | Working validator and slicer | Malformed fixtures fail; verified settings round-trip; no invented production profiles |
 | 10 | Run the adapted Windows CI on GitHub | Write access; locally checked workflow changes committed | Native identity suite and product-aware NSIS/portable artifacts pass on hosted runners |
 | 11 | Validate a clean checkout and clean-machine deployment | Full candidate build | Independent reproducible build and runtime dependencies confirmed |
